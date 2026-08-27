@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Brain Disorder Medical Report</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+background:#eef2fa;
+font-family:Arial;
+padding:40px;
+}
+
+.report{
+width:900px;
+margin:auto;
+background:white;
+padding:40px;
+box-shadow:0 8px 20px rgba(0,0,0,0.15);
+border-radius:10px;
+}
+
+.header{
+border-bottom:4px solid #2f6edb;
+margin-bottom:25px;
+padding-bottom:10px;
+}
+
+.header h1{
+color:#2f6edb;
+margin:0;
+}
+
+.header p{
+color:#666;
+}
+
+.info{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+}
+
+.section{
+margin-top:30px;
+}
+
+.section h2{
+background:#2f6edb;
+color:white;
+padding:8px;
+border-radius:5px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+}
+
+td{
+border:1px solid #ddd;
+padding:10px;
+}
+
+.result{
+color:#2f6edb;
+font-weight:bold;
+}
+
+.low{color:green;}
+.medium{color:orange;}
+.high{color:red;}
+
+ul{
+margin-top:10px;
+padding-left:20px;
+line-height:1.8;
+}
+
+.footer{
+margin-top:50px;
+display:flex;
+justify-content:space-between;
+}
+
+.signature{
+text-align:center;
+}
+
+.line{
+border-top:2px solid black;
+width:200px;
+margin-top:40px;
+}
+
+button{
+background:#2f6edb;
+color:white;
+border:none;
+padding:10px 20px;
+border-radius:5px;
+cursor:pointer;
+margin:10px;
+}
+
+.center{
+text-align:center;
+}
+
+.warning{
+background:#fff3cd;
+color:#856404;
+padding:10px;
+border-radius:5px;
+margin-top:20px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="report">
+
+{% if patient %}
+
+<!-- HEADER -->
+<div class="header">
+<h1>AI Brain Disorder Detection System</h1>
+<p>Neurological MRI Diagnostic Report</p>
+</div>
+
+<!-- PATIENT DETAILS -->
+<div class="info">
+
+<div>
+<b>Patient ID:</b> <span style="color: #2f6edb; font-weight: bold;">{{ patient.patient_id or patient.id or 'N/A' }}</span><br><br>
+<b>Name:</b> {{ patient.name or 'N/A' }}<br><br>
+<b>Mobile No.:</b> {{ patient.mobile or 'N/A' }}<br><br>
+<b>Age / Gender:</b> {{ patient.age or 'N/A' }} / {{ patient.gender or 'N/A' }}
+</div>
+
+<div>
+<b>Department:</b> Neurology & Neuro-Oncology<br><br>
+<b>Total Scans on File:</b> {{ patient.total_scans or (patient.scans|length if patient.scans else 1) }}<br><br>
+<b>Scan Date:</b> {{ patient.date or 'N/A' }}
+</div>
+
+</div>
+
+<!-- RESULT & BIOMARKERS TABLE -->
+<div class="section">
+
+<h2>AI Clinical Biomarkers & Quantitative Analysis</h2>
+
+<table>
+
+<tr>
+<td><b>AI Diagnostic Architecture</b></td>
+<td><b>{{ patient.scan_type or 'Clinical Deep Classifier & 2D/3D U-Net' }}</b></td>
+</tr>
+
+<tr>
+<td><b>Primary Condition / Finding</b></td>
+<td class="result">
+{% if patient.volume|float > 0 %}
+Brain Tumor / Lesion Detected
+{% else %}
+No Tumor Detected (Normal Brain Morphology)
+{% endif %}
+</td>
+</tr>
+
+<tr>
+<td><b>Anatomical Region / Lobe</b></td>
+<td><b>{{ patient.location or 'Bilateral Cerebral Hemispheres (Unremarkable)' }}</b></td>
+</tr>
+
+<tr>
+<td><b>Whole Lesion Volume (WT)</b></td>
+<td><b>{{ patient.volume or 0 }} cm³</b></td>
+</tr>
+
+{% if patient.et_volume and patient.et_volume|float > 0 %}
+<tr>
+<td><b>Active Enhancing Core (ET)</b></td>
+<td style="color: #059669; font-weight: bold;">{{ patient.et_volume }} cm³</td>
+</tr>
+{% endif %}
+
+{% if patient.ed_volume and patient.ed_volume|float > 0 %}
+<tr>
+<td><b>Peritumoral Edema Zone (ED)</b></td>
+<td style="color: #d97706; font-weight: bold;">{{ patient.ed_volume }} cm³</td>
+</tr>
+{% endif %}
+
+<tr>
+<td><b>Diagnostic Confidence</b></td>
+<td><b>{{ patient.confidence or 0 }}%</b></td>
+</tr>
+
+<tr>
+<td><b>Risk Stratification</b></td>
+<td class="
+{% if patient.risk == 'High' %}high
+{% elif patient.risk == 'Medium' %}medium
+{% else %}low
+{% endif %}
+">
+<b>{{ patient.risk or 'Low' }} Risk</b>
+</td>
+</tr>
+
+<tr>
+<td><b>Pathological Assessment</b></td>
+<td>{{ patient.pathology or patient.tumor_type or 'Normal Morphology' }}</td>
+</tr>
+
+<tr>
+<td><b>Recommended Protocol</b></td>
+<td><b>{{ patient.recommendation or 'Routine annual neurological evaluation' }}</b></td>
+</tr>
+
+</table>
+
+</div>
+
+<!-- LONGITUDINAL GROWTH CHART -->
+<div class="section">
+<h2>Longitudinal Volumetric Progression (All Scans)</h2>
+<canvas id="chart" style="max-height: 220px;"></canvas>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+    let growthRaw = {{ (patient.growth if patient.growth else [patient.volume|float if patient.volume else 0]) | tojson | safe }};
+    if (!Array.isArray(growthRaw) || growthRaw.length === 0) {
+        growthRaw = [{{ patient.volume|float if patient.volume else 0 }}];
+    }
+
+    new Chart(document.getElementById("chart"), {
+        type: 'line',
+        data: {
+            labels: growthRaw.map((_, i) => "Scan #" + (i + 1)),
+            datasets: [{
+                label: 'Tumor Volume (cm³)',
+                data: growthRaw,
+                borderColor: '#2f6edb',
+                backgroundColor: 'rgba(47, 110, 219, 0.15)',
+                borderWidth: 2.5,
+                pointBackgroundColor: '#2f6edb',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: 'Volume (cm³)' } }
+            }
+        }
+    });
+});
+</script>
+
+<!-- CLINICAL EXPLANATION -->
+<div class="section">
+
+<h2>Clinical Diagnostic Impression</h2>
+
+{% if patient.volume|float == 0 %}
+<p>No intracranial mass lesion or abnormal parenchymal enhancement detected. Bilateral cerebral hemispheres exhibit normal symmetrical architecture with no midline shift or mass effect.</p>
+
+{% elif patient.risk == "Low" %}
+<p>Focal, early-stage circumscribed lesion detected. Small volume with minimal to no mass effect. Close monitoring and follow-up imaging recommended to track volumetric velocity.</p>
+
+{% elif patient.risk == "Medium" %}
+<p>Moderate enhancing intracranial mass detected with active lesion core and mild peritumoral edema. Prompt neuro-oncological consultation and advanced spectroscopy/contrast MRI recommended.</p>
+
+{% elif patient.risk == "High" %}
+<p>High-grade mass lesion detected with extensive peritumoral edema and significant volume. High suspicion of invasive neoplasm. Urgent neurosurgical consultation is recommended.</p>
+
+{% endif %}
+
+</div>
+
+<!-- PRECAUTIONS -->
+<div class="section">
+
+<h2>Clinical Precautions & Care Guidelines</h2>
+
+<ul>
+<li>Ensure proper hydration and avoid strenuous stress triggers</li>
+<li>Adhere strictly to prescribed neurological or anti-edema medication</li>
+<li>Report new or worsening neurological symptoms (headaches, seizures, vision changes) immediately</li>
+<li>Maintain regular clinical neurology checkups</li>
+</ul>
+
+</div>
+
+<!-- TREATMENT & NEXT STEPS -->
+<div class="section">
+
+<h2>Recommended Clinical Next Steps</h2>
+
+<ul>
+<li><b>Protocol:</b> {{ patient.recommendation or 'Routine follow-up MRI' }}</li>
+<li>Detailed multidisciplinary tumor board review</li>
+<li>Follow-up volumetric MRI scanning at designated intervals</li>
+</ul>
+
+</div>
+
+<!-- DISCLAIMER -->
+<div class="warning">
+⚠️ This AI-generated report is designed as clinical assistive decision support. Final diagnostic verification and management decisions must be confirmed by a licensed medical practitioner.
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+
+<div>
+<b>AI System:</b> Brain Tumor Detection Model
+</div>
+
+<div class="signature">
+<div class="line"></div>
+Doctor Signature
+</div>
+
+</div>
+
+<!-- BUTTONS -->
+<div class="center">
+<button onclick="window.print()">🖨 Print</button>
+<button onclick="window.location.href='/'">🏠 Home</button>
+<button onclick="window.location.href='/patients'">📋 Patients</button>
+</div>
+
+{% else %}
+
+<div class="center">
+<h2>Patient Not Found</h2>
+</div>
+
+{% endif %}
+
+</div>
+
+</body>
+</html>

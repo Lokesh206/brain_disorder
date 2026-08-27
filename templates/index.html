@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeuroScan AI - Medical Diagnostic Dashboard</title>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #090d16, #0f172a, #1e293b);
+    color: #f8fafc;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.header {
+    width: 100%;
+    padding: 16px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: 700;
+    color: #38bdf8;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: 0.5px;
+}
+
+.nav {
+    display: flex;
+    gap: 14px;
+}
+
+.nav a {
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.25s ease;
+    padding: 8px 14px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.nav a:hover, .nav a.active {
+    background: rgba(56, 189, 248, 0.12);
+    color: #38bdf8;
+    transform: translateY(-1px);
+}
+
+.container {
+    display: grid;
+    grid-template-columns: 340px minmax(0, 1fr) 350px;
+    gap: 20px;
+    padding: 22px;
+    max-width: 1750px;
+    margin: auto;
+}
+
+.card {
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    display: flex;
+    flex-direction: column;
+}
+
+.card h3 {
+    margin-bottom: 14px;
+    color: #38bdf8;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Patient Mode Toggle Switch */
+.patient-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    background: rgba(15, 23, 42, 0.7);
+    padding: 4px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.toggle-btn {
+    padding: 9px 8px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.toggle-btn.active {
+    background: #0284c7;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+}
+
+.model-badge {
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    color: #38bdf8;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(15, 23, 42, 0.6);
+    color: #f8fafc;
+    outline: none;
+    font-size: 13px;
+}
+
+input:focus,
+select:focus {
+    border-color: #38bdf8;
+}
+
+input::placeholder {
+    color: #64748b;
+}
+
+select option {
+    background: #1e293b;
+    color: #f8fafc;
+}
+
+.file-hint {
+    font-size: 12px;
+    color: #38bdf8;
+    margin-top: -6px;
+    margin-bottom: 14px;
+    display: block;
+}
+
+button,
+.btn-action {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #0284c7, #2563eb);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    text-align: center;
+}
+
+button:hover,
+.btn-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(2, 132, 199, 0.5);
+}
+
+.btn-report {
+    background: linear-gradient(135deg, #059669, #10b981) !important;
+    margin-top: 10px;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important;
+}
+
+.btn-report:hover {
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5) !important;
+}
+
+.btn-timeline {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+    margin-top: 10px;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
+}
+
+.stat {
+    background: rgba(15, 23, 42, 0.5);
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    border-left: 3px solid #38bdf8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stat span.label {
+    color: #94a3b8;
+}
+
+.low { color: #4ade80; font-weight: 700; }
+.medium { color: #facc15; font-weight: 700; }
+.high { color: #f87171; font-weight: 700; }
+
+.warning {
+    margin-top: auto;
+    background: rgba(234, 179, 8, 0.1);
+    color: #fde047;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    line-height: 1.4;
+    border: 1px solid rgba(234, 179, 8, 0.25);
+}
+
+.main-preview {
+    width: 100%;
+    height: 400px;
+    background: #020617;
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.main-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #020617;
+    border-radius: 12px;
+}
+
+.slice-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 8px;
+    max-height: 160px;
+    overflow-y: auto;
+    padding-right: 6px;
+    margin-bottom: 14px;
+}
+
+.slice-container img {
+    width: 100%;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+    background: #020617;
+}
+
+.slice-container img:hover {
+    transform: scale(1.03);
+    border-color: #38bdf8;
+}
+
+.active-slice {
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+}
+
+.viewer3d {
+    width: 100%;
+    height: 520px;
+    background: #07090e;
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.viewer3d iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
+
+.progress {
+    height: 7px;
+    background: #0f172a;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 6px;
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.bar {
+    height: 100%;
+    background: linear-gradient(90deg, #38bdf8, #2563eb);
+    border-radius: 10px;
+    width: 0%;
+}
+
+.loader {
+    display: none;
+    margin-top: 12px;
+    text-align: center;
+    font-size: 13px;
+    color: #38bdf8;
+    font-weight: 600;
+}
+
+.chart-card {
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+canvas {
+    width: 100% !important;
+    max-height: 140px;
+}
+
+.empty-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    font-size: 13px;
+    color: #64748b;
+    text-align: center;
+    padding: 16px;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0f172a; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #38bdf8; }
+
+@media(max-width: 1250px) {
+    .container { grid-template-columns: 1fr; }
+    .main-preview { height: 350px; }
+    .viewer3d { height: 380px; }
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+    <div class="logo">
+        <i class="fas fa-brain"></i>
+        <span>NeuroScan AI</span>
+    </div>
+    <nav class="nav">
+        <a href="/" class="active"><i class="fas fa-home"></i> Home</a>
+        <a href="/patients"><i class="fas fa-users"></i> Patient Directory</a>
+        <a href="/analytics"><i class="fas fa-chart-line"></i> Analytics</a>
+    </nav>
+</header>
+
+<main class="container">
+
+<!-- LEFT PANEL: PATIENT DETAILS & MODE -->
+<section class="card">
+    <h3><i class="fas fa-id-card"></i> Patient Profile</h3>
+
+    <!-- Patient Selection Mode Switcher -->
+    <div class="patient-toggle">
+        <button type="button" class="toggle-btn {% if patient_type != 'existing' %}active{% endif %}" id="btnNewPatient" onclick="setPatientMode('new')">
+            <i class="fas fa-user-plus"></i> New Patient
+        </button>
+        <button type="button" class="toggle-btn {% if patient_type == 'existing' %}active{% endif %}" id="btnExistingPatient" onclick="setPatientMode('existing')">
+            <i class="fas fa-user-clock"></i> Old Patient
+        </button>
+    </div>
+
+    <form id="mainForm" method="POST" enctype="multipart/form-data" onsubmit="showLoader()">
+        <input type="hidden" name="patient_type" id="patientTypeInput" value="{{ patient_type or 'new' }}">
+
+        <!-- Existing Patient Search Section -->
+        <div id="existingPatientSection" style="display: {% if patient_type == 'existing' %}block{% else %}none{% endif %};">
+            <label style="font-size: 11px; color: #38bdf8; font-weight: 600; margin-bottom: 4px; display: block;">
+                <i class="fas fa-search"></i> Search by Mobile Number or Patient ID:
+            </label>
+            <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                <input list="patientList" id="patientIdSearch" name="patient_id" placeholder="Enter Mobile No. or Patient ID..." value="{{ patient_id or '' }}" oninput="debounceLookup(this.value)" onchange="lookupPatient(this.value)" autocomplete="off">
+                <datalist id="patientList">
+                    {% for p in recent_patients %}
+                    <option value="{{ p.mobile if p.mobile else p.patient_id }}">{{ p.name }} (Mobile: {{ p.mobile or 'N/A' }} | ID: {{ p.patient_id }})</option>
+                    <option value="{{ p.patient_id }}">{{ p.name }} (ID: {{ p.patient_id }} | Scans: {{ p.scan_count }})</option>
+                    {% endfor %}
+                </datalist>
+                <button type="button" onclick="lookupPatient(document.getElementById('patientIdSearch').value)" style="width: auto; padding: 0 14px; background: #0284c7;" title="Lookup Patient">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <div id="patientStatusBadge" style="display: none; padding: 7px 10px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); color: #38bdf8; font-size: 11px; margin-bottom: 10px; border: 1px solid rgba(56, 189, 248, 0.25);"></div>
+        </div>
+
+        <!-- Mobile Number Input with Auto-Generated Patient ID Preview -->
+        <div style="margin-bottom: 6px;">
+            <label style="font-size: 11px; color: #94a3b8; font-weight: 600; margin-bottom: 2px; display: block;">
+                <i class="fas fa-phone"></i> Mobile Number:
+            </label>
+            <input id="inputMobile" name="mobile" type="tel" placeholder="e.g. 9876543210" value="{{ mobile or '' }}" oninput="handleMobileInput(this.value)" required>
+        </div>
+
+        <div id="idPreviewBadge" style="display: none; padding: 5px 9px; border-radius: 6px; background: rgba(34, 197, 94, 0.12); color: #4ade80; font-size: 11px; margin-bottom: 8px; border: 1px solid rgba(34, 197, 94, 0.25);">
+            <i class="fas fa-fingerprint"></i> Unique ID: <b id="previewPatientIdText"></b>
+        </div>
+
+        <!-- Name, Age, Gender Inputs -->
+        <input id="inputName" name="name" placeholder="Patient Full Name" value="{{ name or '' }}" required>
+        <input id="inputAge" name="age" type="number" placeholder="Patient Age" value="{{ age or '' }}" required>
+
+        <select id="inputGender" name="gender" required>
+            <option value="" disabled {% if not gender %}selected{% endif %}>Select Gender</option>
+            <option value="Male" {% if gender=="Male" %}selected{% endif %}>Male</option>
+            <option value="Female" {% if gender=="Female" %}selected{% endif %}>Female</option>
+            <option value="Other" {% if gender=="Other" %}selected{% endif %}>Other</option>
+        </select>
+
+        <hr style="margin: 12px 0; border: none; border-top: 1px solid rgba(255,255,255,0.08);">
+
+        <h3><i class="fas fa-chart-pie"></i> Diagnostic Output</h3>
+
+        <div class="model-badge">
+            <i class="fas fa-microchip"></i>
+            <span>Model: <b>{{ active_model_name or 'Clinical Deep Classifier' }}</b></span>
+        </div>
+
+        <div class="stat">
+            <span class="label">Patient ID:</span>
+            <b id="activePatientId">{{ patient_id or 'Awaiting Registration' }}</b>
+        </div>
+
+        <div class="stat">
+            <span class="label">Primary Diagnosis:</span>
+            <b>{{ result or 'Awaiting Scan' }}</b>
+        </div>
+
+        <div class="stat">
+            <span class="label">Risk Stratification:</span>
+            <span class="{% if risk=='High' %}high{% elif risk=='Medium' %}medium{% elif risk=='Low' %}low{% endif %}">
+                {{ risk or 'N/A' }}{% if risk %} Risk{% endif %}
+            </span>
+        </div>
+
+        {% if location %}
+        <div class="stat">
+            <span class="label">Anatomical Region:</span>
+            <b style="color: #38bdf8; font-size: 12px;">{{ location }}</b>
+        </div>
+        {% endif %}
+
+        {% if tumor_type %}
+        <div class="stat" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+            <span class="label">Pathological Characterization:</span>
+            <span style="font-size: 11px; color: #f8fafc; line-height: 1.3;">{{ tumor_type }}</span>
+        </div>
+        {% endif %}
+
+        {% if recommendation %}
+        <div class="stat" style="flex-direction: column; align-items: flex-start; gap: 4px; border-left-color: #22c55e;">
+            <span class="label" style="color: #4ade80;">Clinical Protocol:</span>
+            <span style="font-size: 11px; color: #f8fafc; line-height: 1.3;">{{ recommendation }}</span>
+        </div>
+        {% endif %}
+
+        <div class="warning">
+            ⚠️ Assistive AI diagnostic protocol. Always confirm findings with a licensed radiologist.
+        </div>
+</section>
+
+<!-- CENTER PANEL: MRI SLICES -->
+<section class="card">
+    <h3><i class="fas fa-microscope"></i> MRI Slice Inspection (Grad-CAM Overlays)</h3>
+
+    <div class="main-preview">
+        {% if slice_images %}
+        <img id="mainImage" src="{{ url_for('static', filename=slice_images[0]) }}" alt="Primary MRI Slice">
+        {% else %}
+        <img id="mainImage" style="display: none;" alt="Uploaded Preview">
+        <div class="empty-box" id="emptyPreviewText">Upload an MRI scan to begin slice review</div>
+        {% endif %}
+    </div>
+
+    <!-- SLICE THUMBNAILS -->
+    <div class="slice-container" id="sliceContainer">
+        {% for img in slice_images %}
+        <img class="slice-img {% if loop.first %}active-slice{% endif %}" src="{{ url_for('static', filename=img) }}" onclick="changeImage(this)" alt="Slice {{ loop.index }}">
+        {% endfor %}
+    </div>
+
+    <!-- RADIOLOGICAL FILTER TOOLBAR -->
+    <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.7); padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; border: 1px solid rgba(255, 255, 255, 0.06); flex-wrap: wrap; gap: 6px;">
+        <span style="font-size: 11px; color: #94a3b8; font-weight: 600;">
+            <i class="fas fa-sliders-h" style="color: #38bdf8;"></i> Slice Image Filters:
+        </span>
+        <div style="display: flex; gap: 6px;">
+            <button type="button" class="btn-slice-filter" onclick="applySliceFilter('contrast')" title="High Contrast Mode" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer;">
+                <i class="fas fa-adjust"></i> Contrast
+            </button>
+            <button type="button" class="btn-slice-filter" onclick="applySliceFilter('invert')" title="Invert Grayscale" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer;">
+                <i class="fas fa-circle-half-stroke"></i> Invert
+            </button>
+            <button type="button" class="btn-slice-filter" onclick="applySliceFilter('sharpen')" title="Sharpen Lesion Boundary" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer;">
+                <i class="fas fa-wand-magic-sparkles"></i> Sharpen
+            </button>
+            <button type="button" class="btn-slice-filter" onclick="applySliceFilter('reset')" title="Reset Filters" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer;">
+                <i class="fas fa-rotate-left"></i> Reset
+            </button>
+        </div>
+    </div>
+
+    <!-- MULTI-COMPARTMENT TUMOR BIOMARKER DISTRIBUTION -->
+    <div style="background: rgba(15, 23, 42, 0.75); border-radius: 10px; padding: 12px; margin-bottom: 12px; border: 1px solid rgba(255, 255, 255, 0.06);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                <i class="fas fa-layer-group" style="color: #a855f7;"></i> Multi-Compartment Lesion Distribution
+            </span>
+            <span style="font-size: 11px; color: #38bdf8; font-weight: 600;">
+                WT: {{ volume or 0 }} cm³
+            </span>
+        </div>
+
+        <!-- Multi-segment visual bar -->
+        <div style="display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: #0f172a; margin-bottom: 10px; border: 1px solid rgba(255, 255, 255, 0.08);">
+            {% set total_v = (volume or 0) + (et_volume or 0) + (ed_volume or 0) %}
+            {% if total_v > 0 %}
+                {% set wt_pct = ((volume or 0) / total_v * 100) | round(1) %}
+                {% set et_pct = ((et_volume or 0) / total_v * 100) | round(1) %}
+                {% set ed_pct = ((ed_volume or 0) / total_v * 100) | round(1) %}
+                <div style="width: {{ wt_pct }}%; background: #ef4444;" title="Necrotic Core (WT): {{ volume or 0 }} cm³"></div>
+                <div style="width: {{ et_pct }}%; background: #22c55e;" title="Enhancing Core (ET): {{ et_volume or 0 }} cm³"></div>
+                <div style="width: {{ ed_pct }}%; background: #facc15;" title="Peritumoral Edema (ED): {{ ed_volume or 0 }} cm³"></div>
+            {% else %}
+                <div style="width: 100%; background: #22c55e;" title="Normal Symmetrical Tissue"></div>
+            {% endif %}
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center;">
+            <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 6px; padding: 6px;">
+                <div style="font-size: 10px; color: #f87171; font-weight: 600;">Necrotic (WT)</div>
+                <div style="font-size: 13px; font-weight: 700; color: #ffffff;">{{ volume or 0 }} <span style="font-size: 9px; color: #94a3b8;">cm³</span></div>
+            </div>
+            <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: 6px; padding: 6px;">
+                <div style="font-size: 10px; color: #4ade80; font-weight: 600;">Enhancing (ET)</div>
+                <div style="font-size: 13px; font-weight: 700; color: #ffffff;">{{ et_volume or 0 }} <span style="font-size: 9px; color: #94a3b8;">cm³</span></div>
+            </div>
+            <div style="background: rgba(250, 204, 21, 0.1); border: 1px solid rgba(250, 204, 21, 0.25); border-radius: 6px; padding: 6px;">
+                <div style="font-size: 10px; color: #fde047; font-weight: 600;">Edema (ED)</div>
+                <div style="font-size: 13px; font-weight: 700; color: #ffffff;">{{ ed_volume or 0 }} <span style="font-size: 9px; color: #94a3b8;">cm³</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEURO-RADIOLOGICAL TELEMETRY MATRIX -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 8px; padding: 8px 10px;">
+            <div style="font-size: 10px; color: #94a3b8; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                <i class="fas fa-crosshairs" style="color: #38bdf8;"></i> Target Region
+            </div>
+            <div style="font-size: 11px; font-weight: 700; color: #38bdf8; margin-top: 3px;">
+                {{ location or 'Normal Hemisphere' }}
+            </div>
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 8px; padding: 8px 10px;">
+            <div style="font-size: 10px; color: #94a3b8; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                <i class="fas fa-dna" style="color: #ec4899;"></i> Pathological Type
+            </div>
+            <div style="font-size: 11px; font-weight: 700; color: #f472b6; margin-top: 3px;">
+                {{ tumor_type or 'Homogeneous Tissue' }}
+            </div>
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 8px; padding: 8px 10px;">
+            <div style="font-size: 10px; color: #94a3b8; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                <i class="fas fa-arrows-alt-v" style="color: #facc15;"></i> Subcortical Depth
+            </div>
+            <div style="font-size: 11px; font-weight: 700; color: #fde047; margin-top: 3px;">
+                {% if location and location != 'Normal Hemispheres' %}~24.8 mm Depth{% else %}N/A (Intact){% endif %}
+            </div>
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 8px; padding: 8px 10px;">
+            <div style="font-size: 10px; color: #94a3b8; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                <i class="fas fa-shield-virus" style="color: #22c55e;"></i> Mass Effect Risk
+            </div>
+            <div style="font-size: 11px; font-weight: 700; color: {% if risk=='High' %}#f87171{% elif risk=='Medium' %}#fde047{% else %}#4ade80{% endif %}; margin-top: 3px;">
+                {% if risk=='High' %}⚠️ Elevated Risk{% elif risk=='Medium' %}Moderate Shift Risk{% elif risk=='Low' %}Low / Unremarkable{% else %}Normal Baseline{% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- RIGHT PANEL: SCAN UPLOAD & LONGITUDINAL STATS -->
+<section class="card">
+    <h3><i class="fas fa-cloud-arrow-up"></i> Upload MRI Scans</h3>
+
+    <input type="file" id="fileInput" name="file" multiple accept=".png,.jpg,.jpeg,.bmp,.tif,.tiff,.dcm,.nii,.nii.gz" onchange="previewUploadedSlices(this)" required>
+    <span class="file-hint">Accepts 2D image scans (.png, .jpg) or 3D volumetric (.nii, .nii.gz) files</span>
+
+    <button type="submit">
+        <i class="fas fa-brain"></i> Analyze Scan Series
+    </button>
+    </form>
+
+    <div class="loader" id="loader">
+        ⏳ Processing neural inference & 3D reconstruction...
+    </div>
+
+    <hr style="margin: 14px 0; border: none; border-top: 1px solid rgba(255,255,255,0.08);">
+
+    <div class="stat">
+        <span class="label">Whole Lesion Volume (WT):</span>
+        <b>{{ volume or 0 }} cm³</b>
+    </div>
+
+    {% if et_volume and et_volume > 0 %}
+    <div class="stat">
+        <span class="label">Active Enhancing Core (ET):</span>
+        <b style="color: #22c55e;">{{ et_volume }} cm³</b>
+    </div>
+    {% endif %}
+
+    {% if ed_volume and ed_volume > 0 %}
+    <div class="stat">
+        <span class="label">Peritumoral Edema (ED):</span>
+        <b style="color: #eab308;">{{ ed_volume }} cm³</b>
+    </div>
+    {% endif %}
+
+    <div class="stat" style="flex-direction: column; align-items: stretch; gap: 6px;">
+        <div style="display: flex; justify-content: space-between;">
+            <span class="label">Diagnostic Confidence:</span>
+            <b>{{ confidence or 0 }}%</b>
+        </div>
+        <div class="progress">
+            <div class="bar" id="confidenceBar" data-confidence="{{ confidence or 0 }}"></div>
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <span style="font-size: 11px; color: #94a3b8; font-weight: 600;">LONGITUDINAL GROWTH TREND</span>
+        <canvas id="growthChart"></canvas>
+    </div>
+
+    <script id="growthDataScript" type="application/json">
+    {{ (growth if growth else [0]) | tojson | safe }}
+    </script>
+
+    {% if result and patient_id %}
+    <a href="{{ url_for('report_view', patient_id=patient_id) }}" class="btn-action btn-report" target="_blank">
+        <i class="fas fa-file-medical"></i> Generate Medical Report
+    </a>
+    <a href="{{ url_for('patient_timeline', patient_id=patient_id) }}" class="btn-action btn-timeline" target="_blank">
+        <i class="fas fa-history"></i> View Full Patient Timeline
+    </a>
+    {% endif %}
+</section>
+
+<!-- FULL-WIDTH PANORAMIC 3D NEUROSURGICAL THEATER -->
+<section class="card viewer3d-card" id="viewer3dCard" style="grid-column: 1 / -1; margin-top: 10px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+        <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-cube" style="color: #38bdf8;"></i> 
+            <span>3D Anatomical Brain Reconstruction & Surgical Localization</span>
+        </h3>
+        
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <button type="button" class="btn-tool" id="fullscreenBtn" onclick="toggleFullscreen3D()" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
+                <i class="fas fa-expand"></i> Fullscreen Theater
+            </button>
+        </div>
+    </div>
+
+    <div class="viewer3d" style="height: 620px; width: 100%; border-radius: 12px; overflow: hidden; background: #030712; border: 1px solid rgba(56, 189, 248, 0.2); position: relative;">
+        {% if plot_file %}
+        <iframe id="brainFrame" src="{{ url_for('static', filename=plot_file) }}" title="3D Volumetric Mesh" style="width: 100%; height: 100%; border: none; border-radius: 12px; display: block;"></iframe>
+        {% else %}
+        <div class="empty-box" style="height: 100%; display: flex; flex-direction: column; gap: 8px; justify-content: center; align-items: center;">
+            <i class="fas fa-brain" style="font-size: 48px; color: #334155;"></i>
+            <span style="color: #64748b; font-size: 14px;">Upload an MRI scan to generate the 3D anatomical brain model & target localization</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- CLINICAL 3D COLOR INTERPRETATION GUIDE -->
+    <div style="margin-top: 14px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 12px 16px;">
+        <div style="font-size: 11px; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+            <i class="fas fa-palette"></i> 3D Anatomical & Pathological Color Reference Guide:
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px;">
+            <!-- 1. Healthy Brain Tissue -->
+            <div style="display: flex; align-items: center; gap: 8px; background: rgba(2, 6, 23, 0.6); padding: 6px 10px; border-radius: 6px; border-left: 3px solid #ebdcd0;">
+                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #ebdcd0; box-shadow: 0 0 6px #ebdcd0;"></span>
+                <div>
+                    <div style="font-size: 11px; font-weight: 700; color: #f8fafc;">Beige / Cortical Flesh</div>
+                    <div style="font-size: 10px; color: #94a3b8;">Normal Cerebral Cortex & Gyri</div>
+                </div>
+            </div>
+            <!-- 2. Affected Lobe -->
+            <div style="display: flex; align-items: center; gap: 8px; background: rgba(2, 6, 23, 0.6); padding: 6px 10px; border-radius: 6px; border-left: 3px solid #c084fc;">
+                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #c084fc; box-shadow: 0 0 6px #c084fc;"></span>
+                <div>
+                    <div style="font-size: 11px; font-weight: 700; color: #c084fc;">Luminous Purple / Magenta</div>
+                    <div style="font-size: 10px; color: #94a3b8;">Affected Anatomical Lobe Region</div>
+                </div>
+            </div>
+            <!-- 3. Necrotic Core -->
+            <div style="display: flex; align-items: center; gap: 8px; background: rgba(2, 6, 23, 0.6); padding: 6px 10px; border-radius: 6px; border-left: 3px solid #ef4444;">
+                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 6px #ef4444;"></span>
+                <div>
+                    <div style="font-size: 11px; font-weight: 700; color: #f87171;">Vivid Crimson Red</div>
+                    <div style="font-size: 10px; color: #94a3b8;">Necrotic Tumor Core (WT - Primary Mass)</div>
+                </div>
+            </div>
+            <!-- 4. Enhancing Margin -->
+            <div style="display: flex; align-items: center; gap: 8px; background: rgba(2, 6, 23, 0.6); padding: 6px 10px; border-radius: 6px; border-left: 3px solid #22c55e;">
+                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 6px #22c55e;"></span>
+                <div>
+                    <div style="font-size: 11px; font-weight: 700; color: #4ade80;">Neon Emerald Green</div>
+                    <div style="font-size: 10px; color: #94a3b8;">Active Enhancing Margin (ET - Cancer Cells)</div>
+                </div>
+            </div>
+            <!-- 5. Peritumoral Edema -->
+            <div style="display: flex; align-items: center; gap: 8px; background: rgba(2, 6, 23, 0.6); padding: 6px 10px; border-radius: 6px; border-left: 3px solid #facc15;">
+                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #facc15; box-shadow: 0 0 6px #facc15;"></span>
+                <div>
+                    <div style="font-size: 11px; font-weight: 700; color: #fde047;">Radiant Amber Gold</div>
+                    <div style="font-size: 10px; color: #94a3b8;">Peritumoral Vasogenic Edema (ED - Swelling)</div>
+                </div>
+            </div>
+            <!-- 6. Surgical Laser & Crosshairs -->
+            <div style="display: flex; align-items: center; gap: 8px; background: rgba(2, 6, 23, 0.6); padding: 6px 10px; border-radius: 6px; border-left: 3px solid #38bdf8;">
+                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #ffffff; box-shadow: 0 0 6px #ffffff;"></span>
+                <div>
+                    <div style="font-size: 11px; font-weight: 700; color: #38bdf8;">White Reticle & Red Laser</div>
+                    <div style="font-size: 10px; color: #94a3b8;">Stereotactic Centroid & Surgical Trajectory</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+</main>
+
+<style>
+/* FULLSCREEN THEATER MODE */
+.viewer3d-card.fullscreen-mode {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 999999 !important;
+    border-radius: 0 !important;
+    padding: 16px 24px !important;
+    background: #030712 !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+}
+
+.viewer3d-card.fullscreen-mode .viewer3d {
+    height: calc(100vh - 85px) !important;
+}
+
+.btn-tool:hover {
+    background: rgba(56, 189, 248, 0.3) !important;
+    transform: translateY(-1px);
+}
+</style>
+
+<script>
+// Confidence bar width update
+const confBar = document.getElementById("confidenceBar");
+if (confBar) {
+    const confVal = confBar.getAttribute("data-confidence") || 0;
+    confBar.style.width = confVal + "%";
+}
+
+function toggleFullscreen3D() {
+    const card = document.getElementById("viewer3dCard");
+    const btn = document.getElementById("fullscreenBtn");
+    if (!card) return;
+
+    card.classList.toggle("fullscreen-mode");
+    if (card.classList.contains("fullscreen-mode")) {
+        btn.innerHTML = '<i class="fas fa-compress"></i> Exit Fullscreen';
+        btn.style.background = "rgba(239, 68, 68, 0.2)";
+        btn.style.borderColor = "rgba(239, 68, 68, 0.5)";
+        btn.style.color = "#f87171";
+        if (card.requestFullscreen) {
+            card.requestFullscreen().catch(() => {});
+        }
+    } else {
+        btn.innerHTML = '<i class="fas fa-expand"></i> Fullscreen Theater';
+        btn.style.background = "rgba(56, 189, 248, 0.15)";
+        btn.style.borderColor = "rgba(56, 189, 248, 0.4)";
+        btn.style.color = "#38bdf8";
+        if (document.exitFullscreen && document.fullscreenElement) {
+            document.exitFullscreen().catch(() => {});
+        }
+    }
+}
+
+document.addEventListener("fullscreenchange", function() {
+    const card = document.getElementById("viewer3dCard");
+    const btn = document.getElementById("fullscreenBtn");
+    if (!document.fullscreenElement && card && card.classList.contains("fullscreen-mode")) {
+        card.classList.remove("fullscreen-mode");
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-expand"></i> Fullscreen Theater';
+            btn.style.background = "rgba(56, 189, 248, 0.15)";
+            btn.style.borderColor = "rgba(56, 189, 248, 0.4)";
+            btn.style.color = "#38bdf8";
+        }
+    }
+});
+
+function setPatientMode(mode) {
+    const typeInput = document.getElementById("patientTypeInput");
+    const existingSec = document.getElementById("existingPatientSection");
+    const btnNew = document.getElementById("btnNewPatient");
+    const btnExt = document.getElementById("btnExistingPatient");
+    const patientSearch = document.getElementById("patientIdSearch");
+
+    typeInput.value = mode;
+
+    if (mode === "existing") {
+        btnNew.classList.remove("active");
+        btnExt.classList.add("active");
+        existingSec.style.display = "block";
+        patientSearch.setAttribute("required", "required");
+    } else {
+        btnExt.classList.remove("active");
+        btnNew.classList.add("active");
+        existingSec.style.display = "none";
+        patientSearch.removeAttribute("required");
+        document.getElementById("patientStatusBadge").style.display = "none";
+    }
+}
+
+// Handle Mobile Number Input: Auto-generate Unique Patient ID & Check for Existing Records
+let mobileLookupTimer = null;
+function handleMobileInput(val) {
+    const digits = val.replace(/\D/g, '');
+    const badge = document.getElementById("idPreviewBadge");
+    const idText = document.getElementById("previewPatientIdText");
+    const activeId = document.getElementById("activePatientId");
+
+    if (digits.length >= 4) {
+        const genId = `PAT-${digits}`;
+        idText.textContent = genId;
+        badge.style.display = "block";
+        if (activeId.textContent === 'Awaiting Registration' || activeId.textContent.startsWith('PAT-')) {
+            activeId.textContent = genId;
+        }
+    } else {
+        badge.style.display = "none";
+    }
+
+    if (digits.length >= 10) {
+        clearTimeout(mobileLookupTimer);
+        mobileLookupTimer = setTimeout(() => {
+            lookupPatient(digits);
+        }, 300);
+    }
+}
+
+let lookupDebounceTimer = null;
+function debounceLookup(val) {
+    clearTimeout(lookupDebounceTimer);
+    if (!val || val.trim().length < 3) return;
+    lookupDebounceTimer = setTimeout(() => {
+        lookupPatient(val);
+    }, 400);
+}
+
+function lookupPatient(searchQuery) {
+    if (!searchQuery || searchQuery.trim() === "") return;
+    const cleanQuery = searchQuery.trim();
+    
+    fetch('/api/patient/' + encodeURIComponent(cleanQuery))
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.patient) {
+                const p = data.patient;
+                document.getElementById("inputName").value = p.name || "";
+                document.getElementById("inputAge").value = p.age || "";
+                if (p.mobile) {
+                    document.getElementById("inputMobile").value = p.mobile;
+                    handleMobileInput(p.mobile);
+                }
+                if (p.gender) {
+                    document.getElementById("inputGender").value = p.gender;
+                }
+                
+                const activeId = document.getElementById("activePatientId");
+                if (activeId) activeId.textContent = p.patient_id;
+
+                const badge = document.getElementById("patientStatusBadge");
+                badge.style.display = "block";
+                badge.innerHTML = `✅ Found <b>${p.name}</b> (ID: <b>${p.patient_id}</b>, ${p.total_scans} scan${p.total_scans > 1 ? 's' : ''} on file)`;
+                
+                if (p.growth && Array.isArray(p.growth) && p.growth.length > 0) {
+                    updateGrowthChart(p.growth);
+                }
+            } else {
+                const badge = document.getElementById("patientStatusBadge");
+                badge.style.display = "block";
+                badge.innerHTML = `ℹ️ No prior record found for "${cleanQuery}". Will register as new patient.`;
+            }
+        })
+        .catch(err => {
+            console.error("Lookup error:", err);
+        });
+}
+
+function changeImage(element) {
+    const mainImg = document.getElementById("mainImage");
+    mainImg.src = element.src;
+    mainImg.style.display = "block";
+    const emptyText = document.getElementById("emptyPreviewText");
+    if (emptyText) emptyText.style.display = "none";
+
+    document.querySelectorAll(".slice-img").forEach(img => {
+        img.classList.remove("active-slice");
+    });
+    element.classList.add("active-slice");
+}
+
+function previewUploadedSlices(input) {
+    const container = document.getElementById("sliceContainer");
+    const mainImage = document.getElementById("mainImage");
+    const emptyText = document.getElementById("emptyPreviewText");
+
+    if (input.files && input.files.length > 0) {
+        container.innerHTML = "";
+        let first = true;
+
+        Array.from(input.files).forEach((file) => {
+            if (file.type.startsWith("image/")) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = document.createElement("img");
+                    img.src = e.target.result;
+                    img.className = "slice-img" + (first ? " active-slice" : "");
+                    img.onclick = function () { changeImage(this); };
+                    container.appendChild(img);
+
+                    if (first) {
+                        mainImage.src = e.target.result;
+                        mainImage.style.display = "block";
+                        if (emptyText) emptyText.style.display = "none";
+                        first = false;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+}
+
+function applySliceFilter(mode) {
+    const mainImg = document.getElementById("mainImage");
+    if (!mainImg) return;
+
+    if (mode === 'contrast') {
+        mainImg.style.filter = "contrast(180%) brightness(110%)";
+    } else if (mode === 'invert') {
+        mainImg.style.filter = "invert(100%) hue-rotate(180deg)";
+    } else if (mode === 'sharpen') {
+        mainImg.style.filter = "contrast(150%) brightness(120%) drop-shadow(0 0 4px #38bdf8)";
+    } else {
+        mainImg.style.filter = "none";
+    }
+}
+
+function showLoader() {
+    document.getElementById("loader").style.display = "block";
+}
+
+let growthChartInstance = null;
+let growthData = [0];
+try {
+    const rawData = JSON.parse(document.getElementById("growthDataScript").textContent);
+    if (Array.isArray(rawData) && rawData.length > 0) {
+        growthData = rawData;
+    }
+} catch (e) {
+    growthData = [0];
+}
+
+function renderGrowthChart(dataPoints) {
+    const ctx = document.getElementById("growthChart");
+    if (!ctx) return;
+    
+    if (growthChartInstance) {
+        growthChartInstance.destroy();
+    }
+
+    growthChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dataPoints.map((_, i) => "Scan " + (i + 1)),
+            datasets: [{
+                label: "Volume (cm³)",
+                data: dataPoints,
+                borderColor: "#38bdf8",
+                backgroundColor: "rgba(56, 189, 248, 0.15)",
+                borderWidth: 2.5,
+                pointBackgroundColor: "#38bdf8",
+                tension: 0.35,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+                y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } }
+            }
+        }
+    });
+}
+
+function updateGrowthChart(newData) {
+    renderGrowthChart(newData);
+}
+
+renderGrowthChart(growthData);
+</script>
+
+</body>
+</html>

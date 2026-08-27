@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patient Timeline - NeuroScan AI</title>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #090d16, #0f172a, #1e293b);
+    color: #f8fafc;
+    min-height: 100vh;
+    padding: 24px;
+}
+
+.topbar {
+    max-width: 1300px;
+    margin: 0 auto 24px auto;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(16px);
+    padding: 16px 28px;
+    border-radius: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: 700;
+    color: #38bdf8;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav {
+    display: flex;
+    gap: 14px;
+}
+
+.nav a {
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 14px;
+    border-radius: 8px;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.nav a:hover {
+    background: rgba(56, 189, 248, 0.12);
+    color: #38bdf8;
+}
+
+.container {
+    max-width: 1300px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 24px;
+}
+
+.card {
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(16px);
+    border-radius: 18px;
+    padding: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.profile-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0284c7, #2563eb);
+    color: white;
+    font-size: 28px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+}
+
+.patient-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+}
+
+.patient-header h2 {
+    font-size: 22px;
+    color: #38bdf8;
+}
+
+.patient-header p {
+    color: #94a3b8;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+.info-item {
+    background: rgba(15, 23, 42, 0.5);
+    padding: 11px 14px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    border-left: 3px solid #38bdf8;
+}
+
+.info-label {
+    color: #94a3b8;
+}
+
+.btn-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 13px;
+    margin-top: 12px;
+    transition: all 0.2s ease;
+}
+
+.btn-scan {
+    background: linear-gradient(135deg, #0284c7, #2563eb);
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+}
+
+.btn-report {
+    background: linear-gradient(135deg, #059669, #10b981);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.timeline-card h3 {
+    color: #38bdf8;
+    font-size: 18px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.chart-box {
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.scan-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.scan-event {
+    background: rgba(15, 23, 42, 0.55);
+    border-radius: 14px;
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: all 0.2s ease;
+}
+
+.scan-event:hover {
+    border-color: rgba(56, 189, 248, 0.3);
+    transform: translateY(-2px);
+}
+
+.scan-event-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 10px;
+}
+
+.scan-title {
+    font-weight: 700;
+    color: #38bdf8;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.scan-date {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.scan-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    font-size: 13px;
+}
+
+.scan-stat {
+    background: rgba(30, 41, 59, 0.5);
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.scan-stat .label {
+    font-size: 11px;
+    color: #94a3b8;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.low { color: #4ade80; font-weight: 700; }
+.medium { color: #facc15; font-weight: 700; }
+.high { color: #f87171; font-weight: 700; }
+
+.slice-previews {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+}
+
+.slice-thumb {
+    width: 65px;
+    height: 65px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: #020617;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@media(max-width: 900px) {
+    .container { grid-template-columns: 1fr; }
+    .scan-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+    <div class="logo">
+        <i class="fas fa-brain"></i>
+        <span>NeuroScan AI</span>
+    </div>
+    <nav class="nav">
+        <a href="/"><i class="fas fa-home"></i> Home</a>
+        <a href="/patients"><i class="fas fa-users"></i> Patient Directory</a>
+        <a href="/analytics"><i class="fas fa-chart-line"></i> Analytics</a>
+    </nav>
+</div>
+
+<main class="container">
+
+<!-- LEFT: PATIENT SUMMARY CARD -->
+<aside class="card">
+    <div class="profile-avatar">
+        {{ patient.name[0] | upper if patient.name else 'P' }}
+    </div>
+
+    <div class="patient-header">
+        <h2>{{ patient.name }}</h2>
+        <p><i class="fas fa-id-badge"></i> {{ patient.patient_id }}</p>
+    </div>
+
+    {% if patient.mobile %}
+    <div class="info-item">
+        <span class="info-label"><i class="fas fa-phone"></i> Mobile:</span>
+        <b style="color: #38bdf8;">{{ patient.mobile }}</b>
+    </div>
+    {% endif %}
+
+    <div class="info-item">
+        <span class="info-label">Age:</span>
+        <b>{{ patient.age or 'N/A' }}</b>
+    </div>
+
+    <div class="info-item">
+        <span class="info-label">Gender:</span>
+        <b>{{ patient.gender or 'N/A' }}</b>
+    </div>
+
+    <div class="info-item">
+        <span class="info-label">Total Scans:</span>
+        <b>{{ patient.total_scans or 1 }}</b>
+    </div>
+
+    <div class="info-item">
+        <span class="info-label">First Visit:</span>
+        <b>{{ patient.created_at or 'N/A' }}</b>
+    </div>
+
+    <div class="info-item">
+        <span class="info-label">Latest Status:</span>
+        <b class="{% if patient.risk=='High' %}high{% elif patient.risk=='Medium' %}medium{% else %}low{% endif %}">
+            {{ patient.risk or 'Low' }} Risk
+        </b>
+    </div>
+
+    <hr style="margin: 16px 0; border: none; border-top: 1px solid rgba(255,255,255,0.08);">
+
+    <a href="/?patient_id={{ patient.patient_id }}" class="btn-action btn-scan">
+        <i class="fas fa-plus-circle"></i> Analyze New Scan
+    </a>
+
+    <a href="/report/{{ patient.patient_id }}" class="btn-action btn-report" target="_blank">
+        <i class="fas fa-file-medical"></i> Complete Medical Report
+    </a>
+</aside>
+
+<!-- RIGHT: LONGITUDINAL TIMELINE & GROWTH -->
+<section class="card timeline-card">
+    <h3><i class="fas fa-chart-line"></i> Volumetric Progression & Scan History</h3>
+
+    <div class="chart-box">
+        <span style="font-size: 12px; color: #94a3b8; font-weight: 600; margin-bottom: 8px; display: block;">
+            TUMOR LESION VOLUME OVER SCANS (cm³)
+        </span>
+        <canvas id="timelineGrowthChart" style="height: 180px;"></canvas>
+    </div>
+
+    <script id="growthDataJSON" type="application/json">
+    {{ (growth if growth else [0]) | tojson | safe }}
+    </script>
+
+    <h3 style="margin-top: 16px;"><i class="fas fa-timeline"></i> Scan Series Timeline</h3>
+
+    <div class="scan-timeline">
+        {% for scan in patient.scans %}
+        <div class="scan-event">
+            <div class="scan-event-header">
+                <span class="scan-title">
+                    <i class="fas fa-notes-medical"></i> Scan #{{ loop.revindex }}: {{ scan.scan_type or '2D MRI Series' }}
+                </span>
+                <span class="scan-date">
+                    <i class="fas fa-calendar-alt"></i> {{ scan.date }}
+                </span>
+            </div>
+
+            <div class="scan-grid">
+                <div class="scan-stat">
+                    <span class="label">Primary Diagnosis</span>
+                    <b>{{ scan.result or 'No Tumor Detected' }}</b>
+                </div>
+
+                <div class="scan-stat">
+                    <span class="label">Whole Lesion Volume</span>
+                    <b>{{ scan.volume or 0.0 }} cm³</b>
+                </div>
+
+                <div class="scan-stat">
+                    <span class="label">Risk Stratification</span>
+                    <span class="{% if scan.risk=='High' %}high{% elif scan.risk=='Medium' %}medium{% else %}low{% endif %}">
+                        {{ scan.risk or 'Low' }}{% if scan.risk %} Risk{% endif %}
+                    </span>
+                </div>
+
+                <div class="scan-stat">
+                    <span class="label">Diagnostic Confidence</span>
+                    <b style="color: #38bdf8;">{{ scan.confidence or 0.0 }}%</b>
+                </div>
+            </div>
+
+            {% if scan.location %}
+            <div style="margin-top: 8px; font-size: 12px; color: #94a3b8;">
+                <i class="fas fa-crosshairs" style="color: #38bdf8;"></i> <b>Location:</b> <span style="color: #f8fafc;">{{ scan.location }}</span>
+            </div>
+            {% endif %}
+
+            {% if scan.recommendation %}
+            <div style="margin-top: 6px; font-size: 12px; color: #4ade80;">
+                <i class="fas fa-stethoscope"></i> <b>Protocol:</b> <span style="color: #f8fafc;">{{ scan.recommendation }}</span>
+            </div>
+            {% endif %}
+
+            {% if scan.slice_images %}
+            <div class="slice-previews">
+                {% for s_img in scan.slice_images %}
+                <img class="slice-thumb" src="{{ url_for('static', filename=s_img) }}" alt="Slice">
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div style="padding: 24px; text-align: center; color: #64748b;">
+            No scans recorded yet for this patient.
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+</main>
+
+<script>
+let growthPoints = [0];
+try {
+    const raw = JSON.parse(document.getElementById("growthDataJSON").textContent);
+    if (Array.isArray(raw) && raw.length > 0) {
+        growthPoints = raw;
+    }
+} catch (e) {
+    growthPoints = [0];
+}
+
+new Chart(document.getElementById("timelineGrowthChart"), {
+    type: 'line',
+    data: {
+        labels: growthPoints.map((_, i) => "Scan " + (i + 1)),
+        datasets: [{
+            label: "Tumor Volume (cm³)",
+            data: growthPoints,
+            borderColor: "#38bdf8",
+            backgroundColor: "rgba(56, 189, 248, 0.15)",
+            borderWidth: 2.5,
+            pointBackgroundColor: "#38bdf8",
+            tension: 0.35,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b', font: { size: 11 } } },
+            y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b', font: { size: 11 } } }
+        }
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+# Python virtual environment
+myenv/
+venv/
+env/
+.env
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.class
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Flask & inference runtime generated files
+uploads/*
+!uploads/.gitkeep
+static/brain3d_*.html
+static/slice_*.jpg
+!static/.gitkeep
+
+# Temporary files
+*.tmp
+* - Copy.txt
