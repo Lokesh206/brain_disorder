@@ -1,5 +1,4 @@
 import os
-import sys
 import copy
 import time
 import torch
@@ -106,7 +105,7 @@ def train_model(data_dir="data", epochs=20, batch_size=16, lr=2e-4, save_path="b
     val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False, num_workers=0)
 
     print("⏳ [4/5] Initializing neural network & loading pretrained weights...", flush=True)
-    model = BrainTumorClassifier2D(in_channels=3, num_classes=len(class_names)).to(device)
+    model = BrainTumorClassifier2D(num_classes=len(class_names)).to(device)
     model = load_pretrained_encoder(model, "brain_tumor_2d_unet_best.pth")
 
     criterion = nn.CrossEntropyLoss(weight=class_weights_tensor)
@@ -118,6 +117,7 @@ def train_model(data_dir="data", epochs=20, batch_size=16, lr=2e-4, save_path="b
             param.requires_grad = False
 
     optimizer = optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=1e-3, weight_decay=1e-3)
+    scheduler = None
 
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
@@ -131,7 +131,7 @@ def train_model(data_dir="data", epochs=20, batch_size=16, lr=2e-4, save_path="b
             for param in model.parameters():
                 param.requires_grad = True
             optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-3)
-            scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs - 3, eta_min=1e-6)
+            scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max(1, epochs - 3), eta_min=1e-6)
 
         t0 = time.time()
         
@@ -152,7 +152,7 @@ def train_model(data_dir="data", epochs=20, batch_size=16, lr=2e-4, save_path="b
             running_loss += loss.item() * inputs.size(0)
             running_corrects += torch.sum(torch.argmax(outputs, 1) == labels.data).item()
 
-        if epoch >= 3:
+        if scheduler is not None:
             scheduler.step()
 
         epoch_train_loss = running_loss / len(train_data)

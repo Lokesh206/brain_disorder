@@ -1,5 +1,4 @@
 import sqlite3
-import os
 import json
 from datetime import datetime
 
@@ -75,6 +74,22 @@ def init_db():
             except Exception:
                 pass
 
+    # 3. AI RAG & LLM Generated Reports Table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS reports (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            patient_id TEXT NOT NULL,
+            scan_id INTEGER,
+            model_name TEXT,
+            provider TEXT,
+            rag_context TEXT,
+            report_text TEXT,
+            report_json TEXT,
+            created_at TEXT,
+            FOREIGN KEY (patient_id) REFERENCES patients (patient_id)
+        )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -91,7 +106,6 @@ def save_patient_and_scan(patient_id, name, age, gender, scan_dict, mobile=""):
     cursor.execute("SELECT id, mobile FROM patients WHERE patient_id = ? OR (mobile != '' AND mobile = ?)", (patient_id, mobile))
     existing = cursor.fetchone()
     if existing:
-        final_pid = patient_id
         cursor.execute("""
             UPDATE patients SET name = ?, age = ?, gender = ?, mobile = COALESCE(NULLIF(?, ''), mobile)
             WHERE patient_id = ?
@@ -334,3 +348,66 @@ def search_patients(query=""):
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+def save_patient_report(patient_id, scan_id, model_name, provider, rag_context, report_text, report_json=None):
+    """Saves a generated AI RAG medical report into the database."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    rag_ctx_str = json.dumps(rag_context) if isinstance(rag_context, (list, dict)) else str(rag_context or "")
+    rep_json_str = json.dumps(report_json) if isinstance(report_json, (list, dict)) else str(report_json or "")
+    
+    cursor.execute("""
+        INSERT INTO reports (patient_id, scan_id, model_name, provider, rag_context, report_text, report_json, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (patient_id, scan_id, model_name, provider, rag_ctx_str, report_text, rep_json_str, now_str))
+    
+    rep_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return rep_id
+
+def get_latest_patient_report(patient_id):
+    """Retrieves the most recent AI RAG generated report for a patient."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT * FROM reports WHERE patient_id = ? ORDER BY id DESC LIMIT 1
+    """, (patient_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return None
+    d = dict(row)
+    try:
+        d['rag_context'] = json.loads(d['rag_context']) if d.get('rag_context') else []
+    except Exception:
+        pass
+    try:
+        d['report_json'] = json.loads(d['report_json']) if d.get('report_json') else {}
+    except Exception:
+        pass
+    return d
+
+def get_patient_reports(patient_id):
+    """Retrieves all past AI RAG generated reports for a patient."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT * FROM reports WHERE patient_id = ? ORDER BY id DESC
+    """, (patient_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    reports = []
+    for r in rows:
+        d = dict(r)
+        try:
+            d['rag_context'] = json.loads(d['rag_context']) if d.get('rag_context') else []
+        except Exception:
+            pass
+        try:
+            d['report_json'] = json.loads(d['report_json']) if d.get('report_json') else {}
+        except Exception:
+            pass
+        reports.append(d)
+    return reports

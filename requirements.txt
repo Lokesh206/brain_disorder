@@ -1,27 +1,47 @@
 # =========================================================
-# Web Framework & Server
+# Web Application & Server
 # =========================================================
-flask>=3.0.0
-werkzeug>=3.0.0
-gunicorn>=21.2.0
+Flask>=2.3.0
+Werkzeug>=2.3.0
+Flask-Cors>=4.0.0
+Flask-SocketIO>=5.3.0
+Flask-SQLAlchemy>=3.0.0
+gunicorn>=21.2.0; sys_platform != 'win32'
 
 # =========================================================
-# Deep Learning & Computer Vision
+# Deep Learning & Neural Architectures (2D/3D U-Net, NeRF)
 # =========================================================
-torch>=2.2.0
-torchvision>=0.17.0
-pillow>=10.0.0
+torch>=2.0.0
+torchvision>=0.15.0
+Pillow>=9.5.0
+opencv-python-headless>=4.8.0
 
 # =========================================================
-# Scientific Computing & Medical Imaging
+# Scientific Computing & 3D Medical Imaging
 # =========================================================
-numpy>=1.26.0
-scipy>=1.11.0
-scikit-image>=0.22.0
-nibabel>=5.2.0
+numpy>=1.24.0
+scipy>=1.10.0
+scikit-image>=0.20.0
+nibabel>=5.0.0
 
 # =========================================================
-# Data Visualization & 3D Analytics
+# Data Visualization & 3D Interactive Analytics
 # =========================================================
-matplotlib>=3.8.0
-plotly>=5.18.0
+matplotlib>=3.7.0
+plotly>=5.15.0
+
+# =========================================================
+# Database & Persistence
+# =========================================================
+SQLAlchemy>=2.0.0
+
+# =========================================================
+# Medical RAG & AI Reporting Pipeline
+# =========================================================
+requests>=2.28.0
+python-dotenv>=1.0.0
+pandas>=1.5.0
+google-generativeai>=0.3.0
+groq>=0.4.0
+openai>=1.0.0
+cohere>=4.0.0

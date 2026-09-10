@@ -263,38 +263,191 @@ button:hover,
 
 .main-preview {
     width: 100%;
-    height: 400px;
+    height: 380px;
     background: #020617;
     border-radius: 14px;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 10px;
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    position: relative;
+    user-select: none;
+    cursor: grab;
+}
+.main-preview:active {
+    cursor: grabbing;
+}
+.main-preview.caliper-mode {
+    cursor: crosshair !important;
+}
+
+#pacsTransformWrap {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform-origin: center center;
+    transition: transform 0.05s ease-out;
 }
 
 .main-preview img {
-    width: 100%;
-    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
     object-fit: contain;
     background: #020617;
-    border-radius: 12px;
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+.pacs-orient {
+    position: absolute;
+    font-size: 11px;
+    font-weight: 800;
+    color: rgba(56, 189, 248, 0.6);
+    pointer-events: none;
+    z-index: 5;
+    font-family: monospace;
+}
+.pacs-orient.top { top: 8px; left: 50%; transform: translateX(-50%); }
+.pacs-orient.bottom { bottom: 8px; left: 50%; transform: translateX(-50%); }
+.pacs-orient.left { left: 8px; top: 50%; transform: translateY(-50%); }
+.pacs-orient.right { right: 8px; top: 50%; transform: translateY(-50%); }
+
+.pacs-scale {
+    position: absolute;
+    bottom: 8px;
+    left: 14px;
+    z-index: 5;
+    font-size: 9px;
+    font-weight: 700;
+    color: #94a3b8;
+    border-bottom: 2px solid #38bdf8;
+    padding-bottom: 2px;
+    width: 50px;
+    text-align: center;
+    pointer-events: none;
+}
+
+.pacs-zoom-tag {
+    position: absolute;
+    bottom: 8px;
+    right: 14px;
+    z-index: 5;
+    font-size: 10px;
+    font-weight: 700;
+    color: #38bdf8;
+    background: rgba(15, 23, 42, 0.85);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    font-family: monospace;
+    pointer-events: none;
+}
+
+#pacsLoupe {
+    display: none;
+    position: absolute;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    border: 2px solid #06b6d4;
+    box-shadow: 0 0 16px rgba(6, 182, 212, 0.6), inset 0 0 10px rgba(6, 182, 212, 0.3);
+    pointer-events: none;
+    background-repeat: no-repeat;
+    z-index: 30;
+}
+#pacsLoupe::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 14px;
+    height: 14px;
+    transform: translate(-50%, -50%);
+    border: 1px dashed rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+}
+
+#caliperCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+}
+
+.pacs-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 6px 10px;
+    margin-bottom: 8px;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.btn-pacs {
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.28);
+    color: #38bdf8;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.btn-pacs:hover, .btn-pacs.active {
+    background: #0284c7;
+    color: #ffffff;
+    border-color: #38bdf8;
+}
+
+.cine-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: 6px 10px;
+    margin-bottom: 10px;
+}
+
+.wl-bar {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .slice-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
     gap: 8px;
-    max-height: 160px;
+    max-height: 140px;
     overflow-y: auto;
     padding-right: 6px;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
 }
 
 .slice-container img {
     width: 100%;
-    height: 72px;
+    height: 64px;
     object-fit: cover;
     border-radius: 6px;
     cursor: pointer;
@@ -407,6 +560,7 @@ canvas {
     </nav>
 </header>
 
+<form id="mainForm" method="POST" enctype="multipart/form-data" onsubmit="showLoader()">
 <main class="container">
 
 <!-- LEFT PANEL: PATIENT DETAILS & MODE -->
@@ -423,10 +577,9 @@ canvas {
         </button>
     </div>
 
-    <form id="mainForm" method="POST" enctype="multipart/form-data" onsubmit="showLoader()">
-        <input type="hidden" name="patient_type" id="patientTypeInput" value="{{ patient_type or 'new' }}">
+    <input type="hidden" name="patient_type" id="patientTypeInput" value="{{ patient_type or 'new' }}">
 
-        <!-- Existing Patient Search Section -->
+    <!-- Existing Patient Search Section -->
         <div id="existingPatientSection" style="display: {% if patient_type == 'existing' %}block{% else %}none{% endif %};">
             <label style="font-size: 11px; color: #38bdf8; font-weight: 600; margin-bottom: 4px; display: block;">
                 <i class="fas fa-search"></i> Search by Mobile Number or Patient ID:
@@ -475,7 +628,18 @@ canvas {
 
         <div class="model-badge">
             <i class="fas fa-microchip"></i>
-            <span>Model: <b>{{ active_model_name or 'Clinical Deep Classifier' }}</b></span>
+            <span>Active Suite: <b>{{ active_model_name or 'Clinical Deep Classifier, 2D/3D U-Net & NeRF' }}</b></span>
+        </div>
+        <div style="display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap;">
+            <span style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: 600;">
+                <i class="fas fa-cube"></i> 3D U-Net Volumetric
+            </span>
+            <span style="background: rgba(6, 182, 212, 0.12); color: #06b6d4; border: 1px solid rgba(6, 182, 212, 0.25); border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: 600;">
+                <i class="fas fa-brain"></i> BrainNeRF Neural Field
+            </span>
+            <span style="background: rgba(168, 85, 247, 0.12); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: 600;">
+                <i class="fas fa-project-diagram"></i> ResNet-18 Classifier
+            </span>
         </div>
 
         <div class="stat">
@@ -521,44 +685,151 @@ canvas {
         </div>
 </section>
 
-<!-- CENTER PANEL: MRI SLICES -->
+<!-- CENTER PANEL: MRI SLICE PACS WORKSTATION -->
 <section class="card">
-    <h3><i class="fas fa-microscope"></i> MRI Slice Inspection (Grad-CAM Overlays)</h3>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+        <h3 style="margin: 0;"><i class="fas fa-microscope"></i> Clinical MRI Workstation</h3>
+        <div style="display: flex; gap: 6px; align-items: center;">
+            <span id="sliceIndicator" style="font-size: 11px; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.12); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.25);">
+                Slice 1 / {{ slice_images|length if slice_images else 0 }}
+            </span>
+            <button type="button" class="btn-pacs active" id="btnToggleOverlay" onclick="toggleOverlayMode()" title="Toggle AI Heatmap / Raw Scan">
+                <i class="fas fa-layer-group"></i> Heatmap: ON
+            </button>
+        </div>
+    </div>
 
-    <div class="main-preview">
-        {% if slice_images %}
-        <img id="mainImage" src="{{ url_for('static', filename=slice_images[0]) }}" alt="Primary MRI Slice">
-        {% else %}
-        <img id="mainImage" style="display: none;" alt="Uploaded Preview">
-        <div class="empty-box" id="emptyPreviewText">Upload an MRI scan to begin slice review</div>
-        {% endif %}
+    <!-- PACS MEDICAL VIEWPORT -->
+    <div class="main-preview" id="pacsViewport" onwheel="onViewportWheel(event)" onmousedown="onViewportMouseDown(event)" ondblclick="resetViewport()">
+        <!-- Anatomical Orientations -->
+        <span class="pacs-orient top">A</span>
+        <span class="pacs-orient bottom">P</span>
+        <span class="pacs-orient left">R</span>
+        <span class="pacs-orient right">L</span>
+        <!-- Scale & Zoom HUD -->
+        <div class="pacs-scale">50 mm</div>
+        <div class="pacs-zoom-tag" id="zoomBadge">1.0x</div>
+
+        <!-- Caliper Canvas Overlay -->
+        <canvas id="caliperCanvas"></canvas>
+
+        <!-- 3x Magnifier Inspection Loupe -->
+        <div id="pacsLoupe"></div>
+
+        <!-- Transform Container for Pan & Zoom -->
+        <div id="pacsTransformWrap">
+            {% if slice_images %}
+            <img id="mainImage" src="{{ url_for('static', filename=slice_images[0]) }}" alt="Primary MRI Slice">
+            {% else %}
+            <img id="mainImage" style="display: none;" alt="Uploaded Preview">
+            <div class="empty-box" id="emptyPreviewText">Upload an MRI scan to begin slice review</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- PACS VIEWPORT QUICK TOOLS -->
+    <div class="pacs-toolbar">
+        <div style="display: flex; gap: 5px; align-items: center;">
+            <button type="button" class="btn-pacs" onclick="zoomViewport(1.25)" title="Zoom In (+)"><i class="fas fa-magnifying-glass-plus"></i></button>
+            <button type="button" class="btn-pacs" onclick="zoomViewport(0.8)" title="Zoom Out (-)"><i class="fas fa-magnifying-glass-minus"></i></button>
+            <button type="button" class="btn-pacs" onclick="resetViewport()" title="Reset Zoom & Pan (Double Click)"><i class="fas fa-arrows-rotate"></i> Reset</button>
+        </div>
+        <div style="display: flex; gap: 5px; align-items: center;">
+            <button type="button" class="btn-pacs" id="btnCaliper" onclick="toggleCaliper()" title="Draw Caliper Measurement Line"><i class="fas fa-ruler-combined"></i> Measure</button>
+            <button type="button" class="btn-pacs" id="btnClearCaliper" onclick="clearCalipers()" title="Clear Measurement Lines"><i class="fas fa-eraser"></i></button>
+            <button type="button" class="btn-pacs" id="btnLoupe" onclick="toggleLoupe()" title="Toggle 3x Magnifier Loupe"><i class="fas fa-circle-dot"></i> 3x Loupe</button>
+        </div>
+    </div>
+
+    <!-- CINE SLICE LOOP PLAYER & SCRUBBER -->
+    <div class="cine-bar">
+        <button type="button" class="btn-pacs" onclick="stepSlice(-1)" title="Previous Slice (←)"><i class="fas fa-backward-step"></i></button>
+        <button type="button" class="btn-pacs" id="btnPlayCine" onclick="toggleCinePlay()" title="Play / Pause Cine Loop (Spacebar)"><i class="fas fa-play"></i> Cine</button>
+        <button type="button" class="btn-pacs" onclick="stepSlice(1)" title="Next Slice (→)"><i class="fas fa-forward-step"></i></button>
+        
+        <input type="range" id="sliceScrubber" min="0" max="{{ (slice_images|length - 1) if slice_images else 0 }}" value="0" oninput="scrubToSlice(this.value)" style="flex: 1; margin: 0 4px;" title="Scrub Slices">
+        
+        <span style="font-size: 10px; color: #94a3b8; white-space: nowrap;">Speed:</span>
+        <input type="range" id="cineFps" min="1" max="20" value="6" oninput="updateCineSpeed(this.value)" style="width: 50px; margin: 0;" title="Cine Frames Per Second">
+        <span id="cineFpsLabel" style="font-size: 10px; color: #38bdf8; font-weight: 700; width: 26px;">6fps</span>
+    </div>
+
+    <!-- RADIOLOGICAL WINDOW / LEVEL (WW/WL) & COLORMAPS -->
+    <div class="wl-bar">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+            <span style="font-size: 10px; font-weight: 700; color: #38bdf8; text-transform: uppercase;">
+                <i class="fas fa-palette"></i> Colormaps:
+            </span>
+            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                <button type="button" class="btn-pacs active" id="btnCmapGray" onclick="setColormap('gray')">⚪ Gray</button>
+                <button type="button" class="btn-pacs" id="btnCmapThermal" onclick="setColormap('thermal')">🔥 Thermal</button>
+                <button type="button" class="btn-pacs" id="btnCmapJet" onclick="setColormap('jet')">🌈 Jet</button>
+                <button type="button" class="btn-pacs" id="btnCmapBone" onclick="setColormap('bone')">🦴 Bone</button>
+                <button type="button" class="btn-pacs" id="btnCmapEmerald" onclick="setColormap('emerald')">🟢 Emerald</button>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 11px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="color: #94a3b8; font-size: 10px;">Brightness:</span>
+                <input type="range" id="sliderBrightness" min="-80" max="80" value="0" oninput="updateWindowLevel()" style="width: 75px; margin: 0;">
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="color: #94a3b8; font-size: 10px;">Contrast:</span>
+                <input type="range" id="sliderContrast" min="60" max="240" value="100" oninput="updateWindowLevel()" style="width: 75px; margin: 0;">
+            </div>
+            <div style="display: flex; gap: 4px;">
+                <button type="button" class="btn-pacs" id="btnInvert" onclick="toggleInvert()" title="Invert Grayscale"><i class="fas fa-circle-half-stroke"></i> Invert</button>
+                <button type="button" class="btn-pacs" id="btnSharpen" onclick="toggleSharpen()" title="Edge Boundary Sharpen"><i class="fas fa-wand-magic-sparkles"></i> Sharpen</button>
+                <button type="button" class="btn-pacs" onclick="resetWindowLevel()" title="Reset Filters"><i class="fas fa-rotate-left"></i></button>
+            </div>
+        </div>
     </div>
 
     <!-- SLICE THUMBNAILS -->
     <div class="slice-container" id="sliceContainer">
         {% for img in slice_images %}
-        <img class="slice-img {% if loop.first %}active-slice{% endif %}" src="{{ url_for('static', filename=img) }}" onclick="changeImage(this)" alt="Slice {{ loop.index }}">
+        <div style="position: relative; display: inline-block;">
+            <img class="slice-img {% if loop.first %}active-slice{% endif %}" src="{{ url_for('static', filename=img) }}" onclick="selectSlice({{ loop.index0 }})" alt="Slice {{ loop.index }}">
+            <span style="position: absolute; bottom: 3px; right: 3px; background: rgba(0,0,0,0.7); color: #fff; font-size: 9px; padding: 1px 4px; border-radius: 3px; font-weight: 700;">#{{ loop.index }}</span>
+        </div>
         {% endfor %}
     </div>
 
-    <!-- RADIOLOGICAL FILTER TOOLBAR -->
-    <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.7); padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; border: 1px solid rgba(255, 255, 255, 0.06); flex-wrap: wrap; gap: 6px;">
-        <span style="font-size: 11px; color: #94a3b8; font-weight: 600;">
-            <i class="fas fa-sliders-h" style="color: #38bdf8;"></i> Slice Image Filters:
-        </span>
-        <div style="display: flex; gap: 6px;">
-            <button type="button" class="btn-slice-filter" onclick="applySliceFilter('contrast')" title="High Contrast Mode" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer;">
-                <i class="fas fa-adjust"></i> Contrast
+    <!-- SLICE DATA JSON -->
+    <script id="sliceDataScript" type="application/json">
+    {
+        "overlay": {{ (slice_images if slice_images else []) | tojson | safe }},
+        "raw": {{ (raw_slice_images if raw_slice_images else []) | tojson | safe }}
+    }
+    </script>
+
+    <!-- NeRF MULTI-PLANAR RECONSTRUCTION (MPR) INTERACTIVE SYNTHESIZER -->
+    <div style="background: rgba(15, 23, 42, 0.75); border-radius: 10px; padding: 12px; margin-bottom: 12px; border: 1px solid rgba(6, 182, 212, 0.25);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 11px; color: #06b6d4; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                <i class="fas fa-brain"></i> NeRF Multi-Planar Synthesis (MPR)
+            </span>
+            <span id="nerfStatusBadge" style="font-size: 10px; color: #38bdf8; background: rgba(56, 189, 248, 0.12); padding: 2px 6px; border-radius: 4px;">
+                Continuous Field Active
+            </span>
+        </div>
+        
+        <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+            <button type="button" class="btn-mpr active" id="btnMprAxial" onclick="switchMprPlane('axial')" style="flex: 1; padding: 5px; font-size: 11px; font-weight: 600; border-radius: 6px; border: 1px solid #06b6d4; background: #0891b2; color: #fff; cursor: pointer;">
+                Axial (Z)
             </button>
-            <button type="button" class="btn-slice-filter" onclick="applySliceFilter('invert')" title="Invert Grayscale" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer;">
-                <i class="fas fa-circle-half-stroke"></i> Invert
+            <button type="button" class="btn-mpr" id="btnMprCoronal" onclick="switchMprPlane('coronal')" style="flex: 1; padding: 5px; font-size: 11px; font-weight: 600; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(15,23,42,0.6); color: #94a3b8; cursor: pointer;">
+                Coronal (Y)
             </button>
-            <button type="button" class="btn-slice-filter" onclick="applySliceFilter('sharpen')" title="Sharpen Lesion Boundary" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer;">
-                <i class="fas fa-wand-magic-sparkles"></i> Sharpen
+            <button type="button" class="btn-mpr" id="btnMprSagittal" onclick="switchMprPlane('sagittal')" style="flex: 1; padding: 5px; font-size: 11px; font-weight: 600; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(15,23,42,0.6); color: #94a3b8; cursor: pointer;">
+                Sagittal (X)
             </button>
-            <button type="button" class="btn-slice-filter" onclick="applySliceFilter('reset')" title="Reset Filters" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer;">
-                <i class="fas fa-rotate-left"></i> Reset
-            </button>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-size: 10px; color: #94a3b8; white-space: nowrap;">Depth Coordinate:</label>
+            <input type="range" id="mprDepthSlider" min="-1.0" max="1.0" step="0.05" value="0.0" oninput="updateMprSlice(this.value)" style="flex: 1; margin: 0;">
+            <span id="mprDepthLabel" style="font-size: 11px; color: #06b6d4; font-weight: 700; width: 35px; text-align: right;">0.00</span>
         </div>
     </div>
 
@@ -654,7 +925,6 @@ canvas {
     <button type="submit">
         <i class="fas fa-brain"></i> Analyze Scan Series
     </button>
-    </form>
 
     <div class="loader" id="loader">
         ⏳ Processing neural inference & 3D reconstruction...
@@ -702,7 +972,7 @@ canvas {
 
     {% if result and patient_id %}
     <a href="{{ url_for('report_view', patient_id=patient_id) }}" class="btn-action btn-report" target="_blank">
-        <i class="fas fa-file-medical"></i> Generate Medical Report
+        <i class="fas fa-brain"></i> Generate AI RAG Medical Report
     </a>
     <a href="{{ url_for('patient_timeline', patient_id=patient_id) }}" class="btn-action btn-timeline" target="_blank">
         <i class="fas fa-history"></i> View Full Patient Timeline
@@ -790,11 +1060,20 @@ canvas {
                     <div style="font-size: 10px; color: #94a3b8;">Stereotactic Centroid & Surgical Trajectory</div>
                 </div>
             </div>
+            <!-- 7. NeRF Neural Radiance Field -->
+            <div style="display: flex; align-items: center; gap: 8px; background: rgba(2, 6, 23, 0.6); padding: 6px 10px; border-radius: 6px; border-left: 3px solid #06b6d4;">
+                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #06b6d4; box-shadow: 0 0 6px #06b6d4;"></span>
+                <div>
+                    <div style="font-size: 11px; font-weight: 700; color: #06b6d4;">Cyan / Emerald Neural Field</div>
+                    <div style="font-size: 10px; color: #94a3b8;">NeRF Continuous Implicit 3D Volume Field</div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
 </main>
+</form>
 
 <style>
 /* FULLSCREEN THEATER MODE */
@@ -968,18 +1247,462 @@ function lookupPatient(searchQuery) {
         });
 }
 
-function changeImage(element) {
+// =========================================================
+// CLINICAL PACS MRI IMAGE WORKSTATION & VIEWER ENGINE
+// =========================================================
+let pacsSliceData = { overlay: [], raw: [] };
+try {
+    const rawScript = document.getElementById("sliceDataScript");
+    if (rawScript && rawScript.textContent.trim()) {
+        pacsSliceData = JSON.parse(rawScript.textContent);
+    }
+} catch (e) {
+    pacsSliceData = { overlay: [], raw: [] };
+}
+
+let pacsState = {
+    sliceIndex: 0,
+    isOverlayActive: true,
+    zoom: 1.0,
+    panX: 0,
+    panY: 0,
+    isPanning: false,
+    startX: 0,
+    startY: 0,
+    brightness: 0,
+    contrast: 100,
+    colormap: 'gray',
+    isSharpen: false,
+    isInvert: false,
+    isLoupeActive: false,
+    isCaliperActive: false,
+    caliperStart: null,
+    caliperLines: [],
+    isCinePlaying: false,
+    cineFps: 6,
+    cineTimer: null
+};
+
+function getActiveSliceList() {
+    if (pacsState.isOverlayActive && pacsSliceData.overlay && pacsSliceData.overlay.length > 0) {
+        return pacsSliceData.overlay;
+    } else if (!pacsState.isOverlayActive && pacsSliceData.raw && pacsSliceData.raw.length > 0) {
+        return pacsSliceData.raw;
+    }
+    return pacsSliceData.overlay || [];
+}
+
+function selectSlice(idx) {
+    const list = getActiveSliceList();
+    if (!list || list.length === 0) return;
+    pacsState.sliceIndex = Math.max(0, Math.min(idx, list.length - 1));
+    
     const mainImg = document.getElementById("mainImage");
-    mainImg.src = element.src;
-    mainImg.style.display = "block";
+    if (mainImg) {
+        const path = list[pacsState.sliceIndex];
+        mainImg.src = path.startsWith("data:") || path.startsWith("http") ? path : `/static/${path}`;
+        mainImg.style.display = "block";
+    }
     const emptyText = document.getElementById("emptyPreviewText");
     if (emptyText) emptyText.style.display = "none";
 
-    document.querySelectorAll(".slice-img").forEach(img => {
-        img.classList.remove("active-slice");
+    const indicator = document.getElementById("sliceIndicator");
+    if (indicator) indicator.textContent = `Slice ${pacsState.sliceIndex + 1} / ${list.length}`;
+
+    const scrubber = document.getElementById("sliceScrubber");
+    if (scrubber) scrubber.value = pacsState.sliceIndex;
+
+    document.querySelectorAll(".slice-img").forEach((img, i) => {
+        if (i === pacsState.sliceIndex) img.classList.add("active-slice");
+        else img.classList.remove("active-slice");
     });
-    element.classList.add("active-slice");
+
+    clearCalipers();
+    applyPacsFilters();
 }
+
+function stepSlice(delta) {
+    const list = getActiveSliceList();
+    if (!list || list.length === 0) return;
+    let nextIdx = (pacsState.sliceIndex + delta + list.length) % list.length;
+    selectSlice(nextIdx);
+}
+
+function scrubToSlice(val) {
+    selectSlice(parseInt(val, 10));
+}
+
+function toggleOverlayMode() {
+    pacsState.isOverlayActive = !pacsState.isOverlayActive;
+    const btn = document.getElementById("btnToggleOverlay");
+    if (btn) {
+        if (pacsState.isOverlayActive) {
+            btn.classList.add("active");
+            btn.innerHTML = '<i class="fas fa-layer-group"></i> Heatmap: ON';
+        } else {
+            btn.classList.remove("active");
+            btn.innerHTML = '<i class="fas fa-eye"></i> Raw MRI Scan';
+        }
+    }
+    selectSlice(pacsState.sliceIndex);
+}
+
+// VIEWPORT ZOOM & PAN
+function applyViewportTransform() {
+    const wrap = document.getElementById("pacsTransformWrap");
+    const badge = document.getElementById("zoomBadge");
+    if (wrap) {
+        wrap.style.transform = `translate(${pacsState.panX}px, ${pacsState.panY}px) scale(${pacsState.zoom})`;
+    }
+    if (badge) {
+        badge.textContent = `${pacsState.zoom.toFixed(1)}x`;
+    }
+}
+
+function zoomViewport(factor) {
+    pacsState.zoom = Math.min(Math.max(pacsState.zoom * factor, 0.8), 5.0);
+    applyViewportTransform();
+}
+
+function resetViewport() {
+    pacsState.zoom = 1.0;
+    pacsState.panX = 0;
+    pacsState.panY = 0;
+    applyViewportTransform();
+}
+
+function onViewportWheel(e) {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.15 : 0.88;
+    zoomViewport(factor);
+}
+
+function onViewportMouseDown(e) {
+    if (pacsState.isCaliperActive) {
+        handleCaliperClick(e);
+        return;
+    }
+    pacsState.isPanning = true;
+    pacsState.startX = e.clientX - pacsState.panX;
+    pacsState.startY = e.clientY - pacsState.panY;
+}
+
+window.addEventListener("mousemove", (e) => {
+    if (pacsState.isPanning) {
+        pacsState.panX = e.clientX - pacsState.startX;
+        pacsState.panY = e.clientY - pacsState.startY;
+        applyViewportTransform();
+    }
+    if (pacsState.isLoupeActive) {
+        updateLoupePosition(e);
+    }
+    if (pacsState.isCaliperActive && pacsState.caliperStart) {
+        drawLiveCaliper(e);
+    }
+});
+
+window.addEventListener("mouseup", () => {
+    pacsState.isPanning = false;
+});
+
+// 3x LOUPE MAGNIFIER
+function toggleLoupe() {
+    pacsState.isLoupeActive = !pacsState.isLoupeActive;
+    const loupe = document.getElementById("pacsLoupe");
+    const btn = document.getElementById("btnLoupe");
+    if (btn) {
+        if (pacsState.isLoupeActive) btn.classList.add("active");
+        else btn.classList.remove("active");
+    }
+    if (loupe && !pacsState.isLoupeActive) {
+        loupe.style.display = "none";
+    }
+}
+
+function updateLoupePosition(e) {
+    const viewport = document.getElementById("pacsViewport");
+    const loupe = document.getElementById("pacsLoupe");
+    const mainImg = document.getElementById("mainImage");
+    if (!viewport || !loupe || !mainImg) return;
+
+    const rect = viewport.getBoundingClientRect();
+    if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+        loupe.style.display = "none";
+        return;
+    }
+
+    loupe.style.display = "block";
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    loupe.style.left = `${x - 65}px`;
+    loupe.style.top = `${y - 65}px`;
+    loupe.style.backgroundImage = `url("${mainImg.src}")`;
+    loupe.style.backgroundSize = `${rect.width * 3}px ${rect.height * 3}px`;
+    loupe.style.backgroundPosition = `-${x * 3 - 65}px -${y * 3 - 65}px`;
+}
+
+// DIGITAL MEASUREMENT CALIPERS
+function toggleCaliper() {
+    pacsState.isCaliperActive = !pacsState.isCaliperActive;
+    const btn = document.getElementById("btnCaliper");
+    const viewport = document.getElementById("pacsViewport");
+    pacsState.caliperStart = null;
+    if (btn) {
+        if (pacsState.isCaliperActive) btn.classList.add("active");
+        else btn.classList.remove("active");
+    }
+    if (viewport) {
+        if (pacsState.isCaliperActive) viewport.classList.add("caliper-mode");
+        else viewport.classList.remove("caliper-mode");
+    }
+}
+
+function clearCalipers() {
+    pacsState.caliperStart = null;
+    pacsState.caliperLines = [];
+    const canvas = document.getElementById("caliperCanvas");
+    if (canvas) {
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+}
+
+function handleCaliperClick(e) {
+    const canvas = document.getElementById("caliperCanvas");
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    if (!pacsState.caliperStart) {
+        pacsState.caliperStart = { x: clickX, y: clickY };
+    } else {
+        const distPx = Math.sqrt((clickX - pacsState.caliperStart.x)**2 + (clickY - pacsState.caliperStart.y)**2);
+        const distMm = (distPx * 1.6 / pacsState.zoom).toFixed(1);
+        pacsState.caliperLines.push({
+            x1: pacsState.caliperStart.x,
+            y1: pacsState.caliperStart.y,
+            x2: clickX,
+            y2: clickY,
+            distMm: distMm
+        });
+        pacsState.caliperStart = null;
+        redrawAllCalipers();
+    }
+}
+
+function drawLiveCaliper(e) {
+    const canvas = document.getElementById("caliperCanvas");
+    if (!canvas || !pacsState.caliperStart) return;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    redrawAllCalipers();
+
+    const ctx = canvas.getContext("2d");
+    const curX = e.clientX - rect.left;
+    const curY = e.clientY - rect.top;
+
+    ctx.save();
+    ctx.strokeStyle = "#06b6d4";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(pacsState.caliperStart.x, pacsState.caliperStart.y);
+    ctx.lineTo(curX, curY);
+    ctx.stroke();
+
+    const distPx = Math.sqrt((curX - pacsState.caliperStart.x)**2 + (curY - pacsState.caliperStart.y)**2);
+    const distMm = (distPx * 1.6 / pacsState.zoom).toFixed(1);
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 11px monospace";
+    ctx.fillText(`d = ${distMm} mm`, (pacsState.caliperStart.x + curX) / 2 + 8, (pacsState.caliperStart.y + curY) / 2 - 8);
+    ctx.restore();
+}
+
+function redrawAllCalipers() {
+    const canvas = document.getElementById("caliperCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    pacsState.caliperLines.forEach(line => {
+        ctx.save();
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(line.x1, line.y1);
+        ctx.lineTo(line.x2, line.y2);
+        ctx.stroke();
+
+        const angle = Math.atan2(line.y2 - line.y1, line.x2 - line.x1) + Math.PI / 2;
+        const capLen = 6;
+        for (const pt of [{x: line.x1, y: line.y1}, {x: line.x2, y: line.y2}]) {
+            ctx.beginPath();
+            ctx.moveTo(pt.x - Math.cos(angle) * capLen, pt.y - Math.sin(angle) * capLen);
+            ctx.lineTo(pt.x + Math.cos(angle) * capLen, pt.y + Math.sin(angle) * capLen);
+            ctx.stroke();
+        }
+
+        const midX = (line.x1 + line.x2) / 2;
+        const midY = (line.y1 + line.y2) / 2;
+        ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+        ctx.fillRect(midX - 32, midY - 18, 64, 16);
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(midX - 32, midY - 18, 64, 16);
+        ctx.fillStyle = "#38bdf8";
+        ctx.font = "bold 10px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(`${line.distMm} mm`, midX, midY - 6);
+        ctx.restore();
+    });
+}
+
+// WINDOW / LEVEL & COLORMAP FILTERS
+function setColormap(cmap) {
+    pacsState.colormap = cmap;
+    document.querySelectorAll(".wl-bar .btn-pacs").forEach(b => {
+        if (b.id && b.id.startsWith("btnCmap")) b.classList.remove("active");
+    });
+    const activeBtn = document.getElementById("btnCmap" + cmap.charAt(0).toUpperCase() + cmap.slice(1));
+    if (activeBtn) activeBtn.classList.add("active");
+    applyPacsFilters();
+}
+
+function updateWindowLevel() {
+    const bSlider = document.getElementById("sliderBrightness");
+    const cSlider = document.getElementById("sliderContrast");
+    if (bSlider) pacsState.brightness = parseInt(bSlider.value, 10);
+    if (cSlider) pacsState.contrast = parseInt(cSlider.value, 10);
+    applyPacsFilters();
+}
+
+function toggleInvert() {
+    pacsState.isInvert = !pacsState.isInvert;
+    const btn = document.getElementById("btnInvert");
+    if (btn) {
+        if (pacsState.isInvert) btn.classList.add("active");
+        else btn.classList.remove("active");
+    }
+    applyPacsFilters();
+}
+
+function toggleSharpen() {
+    pacsState.isSharpen = !pacsState.isSharpen;
+    const btn = document.getElementById("btnSharpen");
+    if (btn) {
+        if (pacsState.isSharpen) btn.classList.add("active");
+        else btn.classList.remove("active");
+    }
+    applyPacsFilters();
+}
+
+function resetWindowLevel() {
+    pacsState.brightness = 0;
+    pacsState.contrast = 100;
+    pacsState.colormap = 'gray';
+    pacsState.isInvert = false;
+    pacsState.isSharpen = false;
+
+    const bSlider = document.getElementById("sliderBrightness");
+    const cSlider = document.getElementById("sliderContrast");
+    if (bSlider) bSlider.value = 0;
+    if (cSlider) cSlider.value = 100;
+    const invBtn = document.getElementById("btnInvert");
+    const shpBtn = document.getElementById("btnSharpen");
+    if (invBtn) invBtn.classList.remove("active");
+    if (shpBtn) shpBtn.classList.remove("active");
+    setColormap('gray');
+}
+
+function applyPacsFilters() {
+    const mainImg = document.getElementById("mainImage");
+    if (!mainImg) return;
+
+    let filterStr = `brightness(${1.0 + pacsState.brightness / 100}) contrast(${pacsState.contrast}%)`;
+
+    if (pacsState.colormap === 'thermal') {
+        filterStr += " sepia(100%) saturate(400%) hue-rotate(330deg)";
+    } else if (pacsState.colormap === 'jet') {
+        filterStr += " sepia(100%) saturate(600%) hue-rotate(180deg)";
+    } else if (pacsState.colormap === 'bone') {
+        filterStr += " invert(90%) contrast(140%)";
+    } else if (pacsState.colormap === 'emerald') {
+        filterStr += " sepia(100%) saturate(400%) hue-rotate(90deg)";
+    }
+
+    if (pacsState.isInvert && pacsState.colormap !== 'bone') {
+        filterStr += " invert(100%) hue-rotate(180deg)";
+    }
+    if (pacsState.isSharpen) {
+        filterStr += " drop-shadow(0 0 3px #38bdf8)";
+    }
+
+    mainImg.style.filter = filterStr;
+}
+
+// CINE SLICE LOOP PLAYER
+function toggleCinePlay() {
+    pacsState.isCinePlaying = !pacsState.isCinePlaying;
+    const btn = document.getElementById("btnPlayCine");
+    if (pacsState.isCinePlaying) {
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+            btn.classList.add("active");
+        }
+        startCineTimer();
+    } else {
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-play"></i> Cine';
+            btn.classList.remove("active");
+        }
+        stopCineTimer();
+    }
+}
+
+function startCineTimer() {
+    stopCineTimer();
+    const intervalMs = Math.max(50, Math.round(1000 / pacsState.cineFps));
+    pacsState.cineTimer = setInterval(() => {
+        stepSlice(1);
+    }, intervalMs);
+}
+
+function stopCineTimer() {
+    if (pacsState.cineTimer) {
+        clearInterval(pacsState.cineTimer);
+        pacsState.cineTimer = null;
+    }
+}
+
+function updateCineSpeed(val) {
+    pacsState.cineFps = parseInt(val, 10);
+    const lbl = document.getElementById("cineFpsLabel");
+    if (lbl) lbl.textContent = `${pacsState.cineFps}fps`;
+    if (pacsState.isCinePlaying) {
+        startCineTimer();
+    }
+}
+
+// KEYBOARD SHORTCUT NAVIGATION
+window.addEventListener("keydown", (e) => {
+    if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+    if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        stepSlice(-1);
+    } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        stepSlice(1);
+    } else if (e.key === " ") {
+        e.preventDefault();
+        toggleCinePlay();
+    }
+});
 
 function previewUploadedSlices(input) {
     const container = document.getElementById("sliceContainer");
@@ -988,43 +1711,43 @@ function previewUploadedSlices(input) {
 
     if (input.files && input.files.length > 0) {
         container.innerHTML = "";
+        pacsSliceData.overlay = [];
+        pacsSliceData.raw = [];
         let first = true;
 
-        Array.from(input.files).forEach((file) => {
+        Array.from(input.files).forEach((file, idx) => {
             if (file.type.startsWith("image/")) {
                 const reader = new FileReader();
                 reader.onload = function (e) {
+                    pacsSliceData.overlay.push(e.target.result);
+                    pacsSliceData.raw.push(e.target.result);
+
+                    const div = document.createElement("div");
+                    div.style.cssText = "position: relative; display: inline-block;";
                     const img = document.createElement("img");
                     img.src = e.target.result;
                     img.className = "slice-img" + (first ? " active-slice" : "");
-                    img.onclick = function () { changeImage(this); };
-                    container.appendChild(img);
+                    img.onclick = function () { selectSlice(idx); };
+                    div.appendChild(img);
+
+                    const badge = document.createElement("span");
+                    badge.style.cssText = "position: absolute; bottom: 3px; right: 3px; background: rgba(0,0,0,0.7); color: #fff; font-size: 9px; padding: 1px 4px; border-radius: 3px; font-weight: 700;";
+                    badge.textContent = `#${idx + 1}`;
+                    div.appendChild(badge);
+
+                    container.appendChild(div);
 
                     if (first) {
                         mainImage.src = e.target.result;
                         mainImage.style.display = "block";
                         if (emptyText) emptyText.style.display = "none";
                         first = false;
+                        selectSlice(0);
                     }
                 };
                 reader.readAsDataURL(file);
             }
         });
-    }
-}
-
-function applySliceFilter(mode) {
-    const mainImg = document.getElementById("mainImage");
-    if (!mainImg) return;
-
-    if (mode === 'contrast') {
-        mainImg.style.filter = "contrast(180%) brightness(110%)";
-    } else if (mode === 'invert') {
-        mainImg.style.filter = "invert(100%) hue-rotate(180deg)";
-    } else if (mode === 'sharpen') {
-        mainImg.style.filter = "contrast(150%) brightness(120%) drop-shadow(0 0 4px #38bdf8)";
-    } else {
-        mainImg.style.filter = "none";
     }
 }
 
@@ -1083,6 +1806,61 @@ function updateGrowthChart(newData) {
 }
 
 renderGrowthChart(growthData);
+
+// =========================================================
+// NeRF MULTI-PLANAR RECONSTRUCTION (MPR) CLIENT ENGINE
+// =========================================================
+let currentMprPlane = 'axial';
+let mprDebounceTimer = null;
+
+function switchMprPlane(plane) {
+    currentMprPlane = plane;
+    document.querySelectorAll('.btn-mpr').forEach(b => {
+        b.style.borderColor = 'rgba(255,255,255,0.1)';
+        b.style.background = 'rgba(15,23,42,0.6)';
+        b.style.color = '#94a3b8';
+    });
+    const activeBtn = document.getElementById('btnMpr' + plane.charAt(0).toUpperCase() + plane.slice(1));
+    if (activeBtn) {
+        activeBtn.style.borderColor = '#06b6d4';
+        activeBtn.style.background = '#0891b2';
+        activeBtn.style.color = '#fff';
+    }
+    const val = document.getElementById('mprDepthSlider').value;
+    fetchMprSlice(plane, val);
+}
+
+function updateMprSlice(val) {
+    document.getElementById('mprDepthLabel').textContent = parseFloat(val).toFixed(2);
+    clearTimeout(mprDebounceTimer);
+    mprDebounceTimer = setTimeout(() => {
+        fetchMprSlice(currentMprPlane, val);
+    }, 120);
+}
+
+function fetchMprSlice(plane, coord) {
+    const badge = document.getElementById('nerfStatusBadge');
+    if (badge) badge.textContent = 'Synthesizing ' + plane + '...';
+
+    fetch('/api/nerf/slice?plane=' + plane + '&coord=' + coord)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.image_url) {
+                const mainImg = document.getElementById('mainImage');
+                if (mainImg) {
+                    mainImg.src = data.image_url;
+                    mainImg.style.display = 'block';
+                    const emptyText = document.getElementById('emptyPreviewText');
+                    if (emptyText) emptyText.style.display = 'none';
+                }
+                if (badge) badge.textContent = 'NeRF Radiance: ' + (data.mean_radiance || 0).toFixed(2);
+            }
+        })
+        .catch(err => {
+            if (badge) badge.textContent = 'NeRF Active';
+            console.warn('NeRF slice fetch error:', err);
+        });
+}
 </script>
 
 </body>

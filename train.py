@@ -1,5 +1,4 @@
 import os
-import sys
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -75,11 +74,11 @@ def main():
 
             running_loss += loss.item() * inputs.size(0)
             _, preds = torch.max(outputs, 1)
-            correct += torch.sum(preds == labels.data)
+            correct += int(torch.sum(preds == labels.data).item())
             total += labels.size(0)
 
-        epoch_loss = running_loss / total
-        epoch_acc = (correct.double() / total) * 100.0
+        epoch_loss = running_loss / max(1, total)
+        epoch_acc = (float(correct) / max(1, total)) * 100.0
 
         print(f"Epoch [{epoch+1:02d}/{EPOCHS:02d}] ── Loss: {epoch_loss:.4f} ── Accuracy: {epoch_acc:.2f}%", flush=True)
 

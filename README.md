@@ -52,7 +52,12 @@ The major objectives of this project are:
 
 ---
 
-# 🚀 Features
+## 🤖 AI RAG & Multi-LLM Medical Report Generation
+- **Longitudinal History Synthesis**: Compares all past MRI scans with current scan to compute volumetric velocity ($\Delta V / \Delta t$), growth percentage %, and RANO response classification.
+- **Evidence-Based Medical RAG**: Real-time semantic vector retrieval grounded in WHO CNS Tumor Classification and RANO guidelines.
+- **Multi-LLM Provider Support**: Google Gemini, Groq (Llama-3.3 70B), OpenAI (GPT-4o), Local Ollama, and built-in Zero-Config Offline Clinical Neural RAG reasoner.
+- **Quantitative Radiomics**: Sub-compartment breakdown of Whole Tumor (WT), Active Enhancing Core (ET), and Peritumoral Edema (ED).
+- **Interactive UI & PDF Export**: Dynamic regeneration, model switching, and print-ready clinical formatting.
 
 ## 🧠 AI Disease Prediction
 

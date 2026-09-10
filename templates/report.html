@@ -1,354 +1,1039 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Brain Disorder Medical Report</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Medical Report | {{ patient.name or patient.id }}</title>
+    
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #1e40af;
+            --primary-dark: #1e3a8a;
+            --primary-light: #3b82f6;
+            --secondary: #0f766e;
+            --accent: #8b5cf6;
+            --dark: #0f172a;
+            --light-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --info: #0284c7;
+        }
 
-<style>
-body{
-background:#eef2fa;
-font-family:Arial;
-padding:40px;
-}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-.report{
-width:900px;
-margin:auto;
-background:white;
-padding:40px;
-box-shadow:0 8px 20px rgba(0,0,0,0.15);
-border-radius:10px;
-}
+        body {
+            background: #eef2f8;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--text-main);
+            padding: 30px 15px;
+            line-height: 1.6;
+        }
 
-.header{
-border-bottom:4px solid #2f6edb;
-margin-bottom:25px;
-padding-bottom:10px;
-}
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+        }
 
-.header h1{
-color:#2f6edb;
-margin:0;
-}
+        /* Top Action Bar (Non-Printable) */
+        .top-action-bar {
+            background: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+        }
 
-.header p{
-color:#666;
-}
+        .action-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
 
-.info{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:20px;
-}
+        .btn {
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
 
-.section{
-margin-top:30px;
-}
+        .btn-primary { background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; }
+        .btn-primary:hover { background: linear-gradient(135deg, #1e3a8a, #2563eb); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25); }
 
-.section h2{
-background:#2f6edb;
-color:white;
-padding:8px;
-border-radius:5px;
-}
+        .btn-secondary { background: #f1f5f9; color: var(--text-main); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: #e2e8f0; }
 
-table{
-width:100%;
-border-collapse:collapse;
-margin-top:10px;
-}
+        .btn-success { background: linear-gradient(135deg, #059669, #10b981); color: white; }
+        .btn-success:hover { background: linear-gradient(135deg, #047857, #059669); }
 
-td{
-border:1px solid #ddd;
-padding:10px;
-}
+        .btn-purple { background: linear-gradient(135deg, #7c3aed, #9333ea); color: white; }
+        .btn-purple:hover { background: linear-gradient(135deg, #6d28d9, #7e22ce); }
 
-.result{
-color:#2f6edb;
-font-weight:bold;
-}
+        .model-select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: white;
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: var(--text-main);
+            outline: none;
+            cursor: pointer;
+        }
 
-.low{color:green;}
-.medium{color:orange;}
-.high{color:red;}
+        /* Printable Report Sheet */
+        .report-sheet {
+            background: white;
+            padding: 45px 50px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
 
-ul{
-margin-top:10px;
-padding-left:20px;
-line-height:1.8;
-}
+        /* Hospital / AI Diagnostics Header */
+        .hospital-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
 
-.footer{
-margin-top:50px;
-display:flex;
-justify-content:space-between;
-}
+        .hospital-brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
 
-.signature{
-text-align:center;
-}
+        .hospital-logo {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 26px;
+            box-shadow: 0 4px 10px rgba(30, 64, 175, 0.3);
+        }
 
-.line{
-border-top:2px solid black;
-width:200px;
-margin-top:40px;
-}
+        .hospital-titles h1 {
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            letter-spacing: -0.5px;
+        }
 
-button{
-background:#2f6edb;
-color:white;
-border:none;
-padding:10px 20px;
-border-radius:5px;
-cursor:pointer;
-margin:10px;
-}
+        .hospital-titles p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
 
-.center{
-text-align:center;
-}
+        .report-badge-box {
+            text-align: right;
+        }
 
-.warning{
-background:#fff3cd;
-color:#856404;
-padding:10px;
-border-radius:5px;
-margin-top:20px;
-}
-</style>
+        .report-badge {
+            background: #eff6ff;
+            color: var(--primary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #bfdbfe;
+            margin-bottom: 6px;
+        }
 
-</head>
+        .report-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
 
-<body>
+        /* Patient Info Grid */
+        .patient-card {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 28px;
+        }
 
-<div class="report">
+        .info-cell h4 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
 
-{% if patient %}
+        .info-cell p {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
 
-<!-- HEADER -->
-<div class="header">
-<h1>AI Brain Disorder Detection System</h1>
-<p>Neurological MRI Diagnostic Report</p>
-</div>
+        .info-cell .pid-tag {
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+        }
 
-<!-- PATIENT DETAILS -->
-<div class="info">
+        /* Section Headings */
+        .report-section {
+            margin-bottom: 30px;
+        }
 
-<div>
-<b>Patient ID:</b> <span style="color: #2f6edb; font-weight: bold;">{{ patient.patient_id or patient.id or 'N/A' }}</span><br><br>
-<b>Name:</b> {{ patient.name or 'N/A' }}<br><br>
-<b>Mobile No.:</b> {{ patient.mobile or 'N/A' }}<br><br>
-<b>Age / Gender:</b> {{ patient.age or 'N/A' }} / {{ patient.gender or 'N/A' }}
-</div>
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            border-bottom: 1.5px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+        }
 
-<div>
-<b>Department:</b> Neurology & Neuro-Oncology<br><br>
-<b>Total Scans on File:</b> {{ patient.total_scans or (patient.scans|length if patient.scans else 1) }}<br><br>
-<b>Scan Date:</b> {{ patient.date or 'N/A' }}
-</div>
+        .section-header i {
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
 
-</div>
+        /* Biomarker Table */
+        .styled-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
 
-<!-- RESULT & BIOMARKERS TABLE -->
-<div class="section">
+        .styled-table th {
+            background: #f1f5f9;
+            color: #334155;
+            text-align: left;
+            padding: 10px 14px;
+            font-weight: 700;
+            border: 1px solid var(--border-color);
+        }
 
-<h2>AI Clinical Biomarkers & Quantitative Analysis</h2>
+        .styled-table td {
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
 
-<table>
+        .styled-table tr:nth-child(even) {
+            background: #fafbfc;
+        }
 
-<tr>
-<td><b>AI Diagnostic Architecture</b></td>
-<td><b>{{ patient.scan_type or 'Clinical Deep Classifier & 2D/3D U-Net' }}</b></td>
-</tr>
+        /* Risk Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .badge-low { background: #dcfce7; color: #15803d; }
+        .badge-medium { background: #fef3c7; color: #b45309; }
+        .badge-high { background: #fee2e2; color: #b91c1c; }
+        .badge-prog { background: #ede9fe; color: #6d28d9; }
 
-<tr>
-<td><b>Primary Condition / Finding</b></td>
-<td class="result">
-{% if patient.volume|float > 0 %}
-Brain Tumor / Lesion Detected
-{% else %}
-No Tumor Detected (Normal Brain Morphology)
-{% endif %}
-</td>
-</tr>
+        /* Longitudinal History Table */
+        .history-table-box {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 18px;
+        }
 
-<tr>
-<td><b>Anatomical Region / Lobe</b></td>
-<td><b>{{ patient.location or 'Bilateral Cerebral Hemispheres (Unremarkable)' }}</b></td>
-</tr>
+        .growth-metrics-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
 
-<tr>
-<td><b>Whole Lesion Volume (WT)</b></td>
-<td><b>{{ patient.volume or 0 }} cm³</b></td>
-</tr>
+        .growth-metric-card {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+        }
 
-{% if patient.et_volume and patient.et_volume|float > 0 %}
-<tr>
-<td><b>Active Enhancing Core (ET)</b></td>
-<td style="color: #059669; font-weight: bold;">{{ patient.et_volume }} cm³</td>
-</tr>
-{% endif %}
+        .growth-metric-card .num {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-top: 4px;
+            font-family: 'JetBrains Mono', monospace;
+        }
 
-{% if patient.ed_volume and patient.ed_volume|float > 0 %}
-<tr>
-<td><b>Peritumoral Edema Zone (ED)</b></td>
-<td style="color: #d97706; font-weight: bold;">{{ patient.ed_volume }} cm³</td>
-</tr>
-{% endif %}
+        .growth-metric-card .lbl {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
 
-<tr>
-<td><b>Diagnostic Confidence</b></td>
-<td><b>{{ patient.confidence or 0 }}%</b></td>
-</tr>
+        /* AI Synthesized Report Text Box */
+        .ai-report-body {
+            background: #fdfdfd;
+            border: 1px solid #cbd5e1;
+            border-left: 4px solid var(--primary);
+            border-radius: 10px;
+            padding: 24px 28px;
+            font-size: 0.94rem;
+            line-height: 1.75;
+            color: #1e293b;
+            margin-bottom: 25px;
+        }
 
-<tr>
-<td><b>Risk Stratification</b></td>
-<td class="
-{% if patient.risk == 'High' %}high
-{% elif patient.risk == 'Medium' %}medium
-{% else %}low
-{% endif %}
-">
-<b>{{ patient.risk or 'Low' }} Risk</b>
-</td>
-</tr>
+        .ai-report-body h1, .ai-report-body h2, .ai-report-body h3 {
+            color: var(--primary-dark);
+            margin-top: 18px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
 
-<tr>
-<td><b>Pathological Assessment</b></td>
-<td>{{ patient.pathology or patient.tumor_type or 'Normal Morphology' }}</td>
-</tr>
+        .ai-report-body h3 {
+            font-size: 1.05rem;
+            border-bottom: 1px dashed #cbd5e1;
+            padding-bottom: 4px;
+        }
 
-<tr>
-<td><b>Recommended Protocol</b></td>
-<td><b>{{ patient.recommendation or 'Routine annual neurological evaluation' }}</b></td>
-</tr>
+        .ai-report-body p {
+            margin-bottom: 12px;
+        }
 
-</table>
+        .ai-report-body ul, .ai-report-body ol {
+            padding-left: 22px;
+            margin-bottom: 14px;
+        }
 
-</div>
+        .ai-report-body li {
+            margin-bottom: 6px;
+        }
 
-<!-- LONGITUDINAL GROWTH CHART -->
-<div class="section">
-<h2>Longitudinal Volumetric Progression (All Scans)</h2>
-<canvas id="chart" style="max-height: 220px;"></canvas>
-</div>
+        .ai-report-body blockquote {
+            background: #eff6ff;
+            border-left: 3px solid var(--primary-light);
+            padding: 10px 16px;
+            margin: 12px 0;
+            border-radius: 0 6px 6px 0;
+            font-style: italic;
+            color: #1e3a8a;
+        }
 
-<script>
-document.addEventListener("DOMContentLoaded", function(){
-    let growthRaw = {{ (patient.growth if patient.growth else [patient.volume|float if patient.volume else 0]) | tojson | safe }};
-    if (!Array.isArray(growthRaw) || growthRaw.length === 0) {
-        growthRaw = [{{ patient.volume|float if patient.volume else 0 }}];
-    }
+        .ai-report-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 14px 0;
+            font-size: 0.88rem;
+        }
 
-    new Chart(document.getElementById("chart"), {
-        type: 'line',
-        data: {
-            labels: growthRaw.map((_, i) => "Scan #" + (i + 1)),
-            datasets: [{
-                label: 'Tumor Volume (cm³)',
-                data: growthRaw,
-                borderColor: '#2f6edb',
-                backgroundColor: 'rgba(47, 110, 219, 0.15)',
-                borderWidth: 2.5,
-                pointBackgroundColor: '#2f6edb',
-                fill: true,
-                tension: 0.3
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: { beginAtZero: true, title: { display: true, text: 'Volume (cm³)' } }
+        .ai-report-body th, .ai-report-body td {
+            border: 1px solid #cbd5e1;
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .ai-report-body th {
+            background: #f1f5f9;
+            font-weight: 700;
+        }
+
+        /* RAG Knowledge Sources Accordion */
+        .rag-sources-container {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 25px;
+        }
+
+        .rag-source-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-top: 10px;
+        }
+
+        .rag-source-title {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rag-source-content {
+            font-size: 0.85rem;
+            color: #475569;
+            margin-top: 6px;
+            font-style: italic;
+            line-height: 1.5;
+        }
+
+        /* Disclaimer Box */
+        .disclaimer-box {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-left: 4px solid var(--warning);
+            border-radius: 8px;
+            padding: 14px 18px;
+            font-size: 0.82rem;
+            color: #92400e;
+            margin-top: 25px;
+            margin-bottom: 30px;
+        }
+
+        /* Footer & Signatures */
+        .report-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 35px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .signature-block {
+            text-align: center;
+            width: 220px;
+        }
+
+        .signature-line {
+            border-top: 1.5px solid #0f172a;
+            margin-top: 50px;
+            margin-bottom: 6px;
+        }
+
+        .signature-name {
+            font-weight: 700;
+            font-size: 0.88rem;
+        }
+
+        .signature-title {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        /* API Key Settings Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-card {
+            background: white;
+            border-radius: 14px;
+            width: 480px;
+            max-width: 95%;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            margin-top: 6px;
+            margin-bottom: 16px;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.15);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Print Specific Styling */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .top-action-bar, .no-print, .rag-controls, .modal-overlay {
+                display: none !important;
+            }
+            .report-sheet {
+                box-shadow: none;
+                border: none;
+                padding: 0;
+                width: 100%;
+            }
+            .page-break {
+                page-break-before: always;
             }
         }
-    });
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Top Action Bar (Non-Printable) -->
+    <div class="top-action-bar no-print">
+        <div class="action-group">
+            <a href="/patient/{{ patient.patient_id }}" class="btn btn-secondary" title="View Patient Profile">
+                <i class="fa-solid fa-arrow-left"></i> Timeline
+            </a>
+            <a href="/" class="btn btn-secondary">
+                <i class="fa-solid fa-house"></i> Home
+            </a>
+        </div>
+
+        <!-- RAG & LLM Controls -->
+        <div class="action-group rag-controls">
+            <label for="providerSelect" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">
+                <i class="fa-solid fa-brain" style="color: var(--primary);"></i> AI Engine:
+            </label>
+            <select id="providerSelect" class="model-select" onchange="handleProviderChange()">
+                <option value="offline" {% if rag and rag.provider == 'offline' %}selected{% endif %}>⚡ Offline Clinical Neural RAG (Built-in)</option>
+                <option value="gemini" {% if rag and rag.provider == 'gemini' %}selected{% endif %}>✨ Google Gemini (Cloud LLM)</option>
+                <option value="groq" {% if rag and rag.provider == 'groq' %}selected{% endif %}>🚀 Groq (Llama-3.3 70B)</option>
+                <option value="openai" {% if rag and rag.provider == 'openai' %}selected{% endif %}>🧠 OpenAI (GPT-4o mini)</option>
+                <option value="ollama" {% if rag and rag.provider == 'ollama' %}selected{% endif %}>💻 Local Ollama (Self-Hosted)</option>
+            </select>
+
+            <button class="btn btn-purple" onclick="openKeyModal()" title="Configure Custom API Keys">
+                <i class="fa-solid fa-key"></i> Key
+            </button>
+
+            <button id="btnRegenerate" class="btn btn-primary" onclick="triggerRagGeneration()">
+                <i class="fa-solid fa-arrows-rotate"></i> Regenerate AI Report
+            </button>
+
+            <button class="btn btn-success" onclick="window.print()" title="Print or Save as PDF">
+                <i class="fa-solid fa-print"></i> Print / PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN REPORT SHEET -->
+    <div class="report-sheet">
+
+        <!-- Hospital / Clinical Header -->
+        <div class="hospital-header">
+            <div class="hospital-brand">
+                <div class="hospital-logo">
+                    <i class="fa-solid fa-brain"></i>
+                </div>
+                <div class="hospital-titles">
+                    <h1>AI NEUROLOGICAL DIAGNOSTIC CENTER</h1>
+                    <p>Clinical Neuro-Oncology & Longitudinal AI Biomarker Report</p>
+                </div>
+            </div>
+            <div class="report-badge-box">
+                <div class="report-badge">
+                    <i class="fa-solid fa-microchip"></i> RAG & Multi-LLM Certified
+                </div>
+                <div class="report-date">
+                    Generated: <span id="reportGenDate">{{ (rag.created_at if rag else patient.date) or 'N/A' }}</span>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 3px;">
+                    Model: <b style="color: var(--primary);" id="activeModelTag">{{ rag.model_name if rag else 'Clinical-Neural-RAG' }}</b>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patient Demographics Info Card -->
+        <div class="patient-card">
+            <div class="info-cell">
+                <h4>Patient ID</h4>
+                <p class="pid-tag">{{ patient.patient_id or patient.id or 'N/A' }}</p>
+            </div>
+            <div class="info-cell">
+                <h4>Patient Name</h4>
+                <p>{{ patient.name or 'Unknown' }}</p>
+            </div>
+            <div class="info-cell">
+                <h4>Age / Gender</h4>
+                <p>{{ patient.age or 'N/A' }} / {{ patient.gender or 'N/A' }}</p>
+            </div>
+            <div class="info-cell">
+                <h4>Contact Number</h4>
+                <p>{{ patient.mobile or 'N/A' }}</p>
+            </div>
+            <div class="info-cell">
+                <h4>Total Scans on File</h4>
+                <p><span class="badge badge-prog">{{ patient.total_scans or (patient.scans|length if patient.scans else 1) }} Scans</span></p>
+            </div>
+            <div class="info-cell">
+                <h4>Current Scan Date</h4>
+                <p>{{ patient.date or 'N/A' }}</p>
+            </div>
+        </div>
+
+        <!-- Section 1: Quantitative Radiomics & Biomarkers -->
+        <div class="report-section">
+            <div class="section-header">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span>I. Current Scan Quantitative Biomarkers & Radiomics</span>
+            </div>
+
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>Radiomic Parameter</th>
+                        <th>Quantitative Finding</th>
+                        <th>Clinical Significance</th>
+                        <th>Risk Assessment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><b>Primary Condition Finding</b></td>
+                        <td style="color: var(--primary); font-weight: 700;">
+                            {% if patient.volume|float > 0 %}
+                                Intracranial Neoplasm / Lesion Detected
+                            {% else %}
+                                Normal Brain Morphology (No Tumor)
+                            {% endif %}
+                        </td>
+                        <td>{{ patient.pathology or patient.tumor_type or 'Normal Morphology' }}</td>
+                        <td>
+                            <span class="badge {% if patient.risk == 'High' %}badge-high{% elif patient.risk == 'Medium' %}badge-medium{% else %}badge-low{% endif %}">
+                                {{ patient.risk or 'Low' }} Risk
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><b>Anatomical Region / Lobe</b></td>
+                        <td colspan="2"><b>{{ patient.location or 'Bilateral Cerebral Hemispheres (Unremarkable)' }}</b></td>
+                        <td>Functional Cortex Mapping</td>
+                    </tr>
+                    <tr>
+                        <td><b>Whole Lesion Volume (WT)</b></td>
+                        <td><b>{{ patient.volume or 0.0 }} cm³</b></td>
+                        <td>Total volumetric space-occupying burden</td>
+                        <td>{% if patient.volume|float > 5 %}Critical{% elif patient.volume|float > 1 %}Moderate{% else %}Low Burden{% endif %}</td>
+                    </tr>
+                    {% if patient.et_volume and patient.et_volume|float > 0 %}
+                    <tr>
+                        <td><b>Active Enhancing Core (ET)</b></td>
+                        <td style="color: var(--success); font-weight: 700;">{{ patient.et_volume }} cm³</td>
+                        <td>Hypervascular proliferating tumor tissue</td>
+                        <td>ET/WT Ratio: {{ ((patient.et_volume|float) / ((patient.volume|float) + 0.0001)) | round(2) }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if patient.ed_volume and patient.ed_volume|float > 0 %}
+                    <tr>
+                        <td><b>Peritumoral Edema Zone (ED)</b></td>
+                        <td style="color: var(--warning); font-weight: 700;">{{ patient.ed_volume }} cm³</td>
+                        <td>Vasogenic infiltrative peritumoral edema</td>
+                        <td>{% if patient.ed_volume|float > 3 %}Elevated ICP Risk{% else %}Controlled{% endif %}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td><b>AI Model Confidence</b></td>
+                        <td><b>{{ patient.confidence or 0 }}%</b></td>
+                        <td>Multi-Scale Deep Classifier & 2D/3D U-Net</td>
+                        <td>{% if patient.confidence|float >= 85 %}High Diagnostic Certainty{% else %}Moderate{% endif %}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Section 2: Longitudinal History & Comparative Trajectory -->
+        <div class="report-section">
+            <div class="section-header">
+                <i class="fa-solid fa-timeline"></i>
+                <span>II. Longitudinal Volumetric Velocity & Historical Comparative Trajectory</span>
+            </div>
+
+            {% set traj = rag.trajectory if rag and rag.trajectory else {} %}
+            
+            {% if traj and traj.total_scans and traj.total_scans > 1 %}
+            <div class="growth-metrics-row">
+                <div class="growth-metric-card">
+                    <div class="lbl">RANO Response Status</div>
+                    <div class="num" style="font-size: 1.05rem; color: #7c3aed;">{{ traj.progression_category }}</div>
+                </div>
+                <div class="growth-metric-card">
+                    <div class="lbl">Volumetric Δ (vs Previous)</div>
+                    <div class="num" style="color: {% if traj.delta_volume > 0 %}#dc2626{% elif traj.delta_volume < 0 %}#059669{% else %}#1e40af{% endif %};">
+                        {{ "%+0.2f"|format(traj.delta_volume|float) }} cm³
+                    </div>
+                </div>
+                <div class="growth-metric-card">
+                    <div class="lbl">% Change from Previous</div>
+                    <div class="num" style="color: {% if traj.percentage_change > 0 %}#dc2626{% elif traj.percentage_change < 0 %}#059669{% else %}#1e40af{% endif %};">
+                        {{ "%+0.1f"|format(traj.percentage_change|float) }}%
+                    </div>
+                </div>
+                <div class="growth-metric-card">
+                    <div class="lbl">Growth Velocity Rate</div>
+                    <div class="num">{{ "%+0.2f"|format(traj.velocity_cm3_per_month|float) }} cm³/mo</div>
+                </div>
+            </div>
+
+            <!-- Historical Scans Table -->
+            <div class="history-table-box">
+                <table class="styled-table" style="margin-bottom: 0;">
+                    <thead>
+                        <tr>
+                            <th>Scan #</th>
+                            <th>Date</th>
+                            <th>Scan Type</th>
+                            <th>Volume (cm³)</th>
+                            <th>Location</th>
+                            <th>Risk Tier</th>
+                            <th>AI Confidence</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sc in traj.historical_table %}
+                        <tr {% if loop.last %}style="background: #eff6ff; font-weight: 600;"{% endif %}>
+                            <td><b>Scan {{ sc.scan_number }}{% if loop.last %} (Current){% endif %}</b></td>
+                            <td>{{ sc.date }}</td>
+                            <td>{{ sc.scan_type }}</td>
+                            <td><b>{{ sc.volume }} cm³</b></td>
+                            <td>{{ sc.location }}</td>
+                            <td>
+                                <span class="badge {% if sc.risk == 'High' %}badge-high{% elif sc.risk == 'Medium' %}badge-medium{% else %}badge-low{% endif %}">
+                                    {{ sc.risk }}
+                                </span>
+                            </td>
+                            <td>{{ sc.confidence }}%</td>
+                            <td>{{ sc.result }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% else %}
+            <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 18px; font-size: 0.9rem; margin-bottom: 15px;">
+                <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> 
+                <b>Baseline Examination:</b> This scan serves as the primary index reference point. Serial follow-up imaging will automatically establish volumetric velocity tracking.
+            </div>
+            {% endif %}
+
+            <!-- Volumetric Progression Curve -->
+            <div style="margin-top: 15px;">
+                <canvas id="progressionChart" style="max-height: 220px;"></canvas>
+            </div>
+        </div>
+
+        <!-- Section 3: AI RAG Synthesized Diagnostic Report Body -->
+        <div class="report-section">
+            <div class="section-header">
+                <i class="fa-solid fa-file-medical"></i>
+                <span>III. AI RAG Synthesized Comprehensive Clinical Assessment</span>
+            </div>
+
+            <div id="aiReportContainer" class="ai-report-body">
+                {% if rag and rag.report_markdown %}
+                    <!-- Render Markdown lines formatted cleanly -->
+                    <div id="markdownRenderedContent"></div>
+                {% else %}
+                    <p>Generating clinical diagnostic assessment...</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="disclaimer-box">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <b>Clinical Decision Support Disclaimer:</b> This diagnostic report was synthesized using artificial intelligence deep neural networks, volumetric radiomics segmentations, and Retrieval-Augmented Generation grounded in neuro-oncology clinical corpora. It is intended strictly as clinical decision support for qualified healthcare practitioners and must be correlated with clinical examinations and histopathological confirmation.
+        </div>
+
+        <!-- Official Signatures Block -->
+        <div class="report-footer">
+            <div>
+                <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary);">
+                    <i class="fa-solid fa-shield-halved"></i> AI Diagnostic System Verification
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+                    Digital Signature ID: <code style="font-family: 'JetBrains Mono', monospace;">{{ patient.patient_id }}-{{ patient.date | replace(' ', '-') | replace(':', '') }}</code>
+                </div>
+            </div>
+
+            <div class="signature-block">
+                <div class="signature-line"></div>
+                <div class="signature-name">Consultant Neuro-Radiologist</div>
+                <div class="signature-title">MBBS, MD, DNB (Radio-Diagnosis)</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- API Key Settings Modal -->
+<div id="apiKeyModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 style="font-size: 1.1rem; color: var(--primary-dark);"><i class="fa-solid fa-key"></i> LLM API Configuration</h3>
+            <button onclick="closeKeyModal()" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:#64748b;">&times;</button>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+            Optionally store your custom API key locally in your browser to power cloud-based LLM generation:
+        </p>
+
+        <label style="font-size: 0.82rem; font-weight: 700;">Google Gemini API Key:</label>
+        <input type="password" id="inputGeminiKey" class="form-input" placeholder="AIzaSy...">
+
+        <label style="font-size: 0.82rem; font-weight: 700;">Groq API Key:</label>
+        <input type="password" id="inputGroqKey" class="form-input" placeholder="gsk_...">
+
+        <label style="font-size: 0.82rem; font-weight: 700;">OpenAI API Key:</label>
+        <input type="password" id="inputOpenaiKey" class="form-input" placeholder="sk-...">
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+            <button class="btn btn-secondary" onclick="closeKeyModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveApiKeys()">Save Settings</button>
+        </div>
+    </div>
+</div>
+
+<!-- Markdown Parser & Client Interaction Scripts -->
+<script>
+// Raw report markdown from backend
+const rawMarkdown = {{ (rag.report_markdown if rag else '') | tojson | safe }};
+
+// Helper: Convert Markdown to Styled HTML
+function renderMarkdownToHtml(md) {
+    if (!md) return "<p>No report text available.</p>";
+
+    let html = md
+        // Headers
+        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+        .replace(/^# (.*$)/gim, '<h2>$1</h2>')
+        // Blockquotes
+        .replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>')
+        // Bold & Italic
+        .replace(/\*\*(.*?)\*\*/gim, '<b>$1</b>')
+        .replace(/\*(.*?)\*/gim, '<i>$1</i>')
+        // Tables
+        .replace(/\| (.*) \|/gim, function(match) {
+            let cells = match.split('|').filter(c => c.trim() !== '');
+            if (cells.some(c => c.includes('---'))) return '';
+            let row = cells.map(c => `<td>${c.trim()}</td>`).join('');
+            return `<tr>${row}</tr>`;
+        })
+        // Lists
+        .replace(/^\- (.*$)/gim, '<li>$1</li>')
+        // Paragraph breaks
+        .replace(/\n\n/gim, '</p><p>')
+        .replace(/\n/gim, '<br>');
+
+    // Wrap tr elements in table
+    if (html.includes('<tr>')) {
+        html = html.replace(/(<tr>.*?<\/tr>)+/gim, '<table class="styled-table">$&</table>');
+    }
+    // Wrap li elements in ul
+    if (html.includes('<li>')) {
+        html = html.replace(/(<li>.*?<\/li>)+/gim, '<ul>$&</ul>');
+    }
+
+    return '<p>' + html + '</p>';
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Render initial markdown report content
+    const container = document.getElementById("markdownRenderedContent");
+    if (container && rawMarkdown) {
+        container.innerHTML = renderMarkdownToHtml(rawMarkdown);
+    }
+
+    // 2. Load API keys from localStorage
+    document.getElementById("inputGeminiKey").value = localStorage.getItem("GEMINI_API_KEY") || "";
+    document.getElementById("inputGroqKey").value = localStorage.getItem("GROQ_API_KEY") || "";
+    document.getElementById("inputOpenaiKey").value = localStorage.getItem("OPENAI_API_KEY") || "";
+
+    // 3. Render Chart.js Longitudinal Progression Curve
+    const growthRaw = {{ (patient.growth if patient.growth else [patient.volume|float if patient.volume else 0.0]) | tojson | safe }};
+    const chartData = (Array.isArray(growthRaw) && growthRaw.length > 0) ? growthRaw : [{{ patient.volume|float if patient.volume else 0.0 }}];
+
+    const ctx = document.getElementById("progressionChart");
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartData.map((_, i) => "Scan #" + (i + 1)),
+                datasets: [{
+                    label: 'Whole Tumor Volume (cm³)',
+                    data: chartData,
+                    borderColor: '#1e40af',
+                    backgroundColor: 'rgba(30, 64, 175, 0.12)',
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#1e40af',
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    fill: true,
+                    tension: 0.25
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true, position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                return ` Volume: ${ctx.parsed.y} cm³`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Volume (cm³)' }
+                    },
+                    x: {
+                        title: { display: true, text: 'Chronological Scan Series' }
+                    }
+                }
+            }
+        });
+    }
 });
+
+// Modal Actions
+function openKeyModal() {
+    document.getElementById("apiKeyModal").style.display = "flex";
+}
+function closeKeyModal() {
+    document.getElementById("apiKeyModal").style.display = "none";
+}
+function saveApiKeys() {
+    localStorage.setItem("GEMINI_API_KEY", document.getElementById("inputGeminiKey").value.trim());
+    localStorage.setItem("GROQ_API_KEY", document.getElementById("inputGroqKey").value.trim());
+    localStorage.setItem("OPENAI_API_KEY", document.getElementById("inputOpenaiKey").value.trim());
+    closeKeyModal();
+    alert("API Keys saved securely in local browser storage!");
+}
+
+function handleProviderChange() {
+    const prov = document.getElementById("providerSelect").value;
+    if (prov !== "offline") {
+        const storedKey = localStorage.getItem(prov.toUpperCase() + "_API_KEY");
+        if (!storedKey && prov !== "ollama") {
+            // Suggest entering API key
+            openKeyModal();
+        }
+    }
+}
+
+// Trigger Interactive RAG Generation
+async function triggerRagGeneration() {
+    const btn = document.getElementById("btnRegenerate");
+    const provider = document.getElementById("providerSelect").value;
+    const patientId = "{{ patient.patient_id or patient.id }}";
+
+    let apiKey = "";
+    if (provider === "gemini") apiKey = localStorage.getItem("GEMINI_API_KEY") || "";
+    else if (provider === "groq") apiKey = localStorage.getItem("GROQ_API_KEY") || "";
+    else if (provider === "openai") apiKey = localStorage.getItem("OPENAI_API_KEY") || "";
+
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner"></span> Generating AI Report...`;
+
+    try {
+        const response = await fetch(`/api/generate_report/${patientId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                provider: provider,
+                api_key: apiKey
+            })
+        });
+
+        const data = await response.json();
+        if (data.success && data.report_markdown) {
+            document.getElementById("markdownRenderedContent").innerHTML = renderMarkdownToHtml(data.report_markdown);
+            document.getElementById("activeModelTag").innerText = data.model_name || provider;
+            document.getElementById("reportGenDate").innerText = data.created_at || new Date().toLocaleString();
+        } else {
+            alert("Error generating report: " + (data.message || "Unknown error"));
+        }
+    } catch (err) {
+        console.error("RAG Generation Error:", err);
+        alert("Failed to communicate with RAG generation server.");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i> Regenerate AI Report`;
+    }
+}
 </script>
-
-<!-- CLINICAL EXPLANATION -->
-<div class="section">
-
-<h2>Clinical Diagnostic Impression</h2>
-
-{% if patient.volume|float == 0 %}
-<p>No intracranial mass lesion or abnormal parenchymal enhancement detected. Bilateral cerebral hemispheres exhibit normal symmetrical architecture with no midline shift or mass effect.</p>
-
-{% elif patient.risk == "Low" %}
-<p>Focal, early-stage circumscribed lesion detected. Small volume with minimal to no mass effect. Close monitoring and follow-up imaging recommended to track volumetric velocity.</p>
-
-{% elif patient.risk == "Medium" %}
-<p>Moderate enhancing intracranial mass detected with active lesion core and mild peritumoral edema. Prompt neuro-oncological consultation and advanced spectroscopy/contrast MRI recommended.</p>
-
-{% elif patient.risk == "High" %}
-<p>High-grade mass lesion detected with extensive peritumoral edema and significant volume. High suspicion of invasive neoplasm. Urgent neurosurgical consultation is recommended.</p>
-
-{% endif %}
-
-</div>
-
-<!-- PRECAUTIONS -->
-<div class="section">
-
-<h2>Clinical Precautions & Care Guidelines</h2>
-
-<ul>
-<li>Ensure proper hydration and avoid strenuous stress triggers</li>
-<li>Adhere strictly to prescribed neurological or anti-edema medication</li>
-<li>Report new or worsening neurological symptoms (headaches, seizures, vision changes) immediately</li>
-<li>Maintain regular clinical neurology checkups</li>
-</ul>
-
-</div>
-
-<!-- TREATMENT & NEXT STEPS -->
-<div class="section">
-
-<h2>Recommended Clinical Next Steps</h2>
-
-<ul>
-<li><b>Protocol:</b> {{ patient.recommendation or 'Routine follow-up MRI' }}</li>
-<li>Detailed multidisciplinary tumor board review</li>
-<li>Follow-up volumetric MRI scanning at designated intervals</li>
-</ul>
-
-</div>
-
-<!-- DISCLAIMER -->
-<div class="warning">
-⚠️ This AI-generated report is designed as clinical assistive decision support. Final diagnostic verification and management decisions must be confirmed by a licensed medical practitioner.
-</div>
-
-<!-- FOOTER -->
-<div class="footer">
-
-<div>
-<b>AI System:</b> Brain Tumor Detection Model
-</div>
-
-<div class="signature">
-<div class="line"></div>
-Doctor Signature
-</div>
-
-</div>
-
-<!-- BUTTONS -->
-<div class="center">
-<button onclick="window.print()">🖨 Print</button>
-<button onclick="window.location.href='/'">🏠 Home</button>
-<button onclick="window.location.href='/patients'">📋 Patients</button>
-</div>
-
-{% else %}
-
-<div class="center">
-<h2>Patient Not Found</h2>
-</div>
-
-{% endif %}
-
-</div>
 
 </body>
 </html>

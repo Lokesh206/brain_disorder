@@ -18,6 +18,8 @@ uploads/*
 !uploads/.gitkeep
 static/brain3d_*.html
 static/slice_*.jpg
+static/slice_raw_*.jpg
+static/nerf_*.jpg
 !static/.gitkeep
 
 # Temporary files
