@@ -76,14 +76,48 @@ eval_transform_2d = transforms.Compose([
 # LOAD CLINICAL CLASSIFIER, 2D/3D U-NET & NeRF MODELS SAFELY
 # =========================================================
 print("[*] Loading Clinical Deep Classifier, 2D/3D U-Net & NeRF Suite...", flush=True)
-model_clf, model_3d, model_2d_unet, model_nerf = load_all_models(
-    path_2d="brain_tumor_2d_unet_best.pth",
-    path_3d="brain_tumor_3d_unet_best.pth",
-    path_nerf="nerf_brain_model.pth",
-    device=device
-)
-models_loaded = (model_clf is not None and model_3d is not None and model_nerf is not None)
-model_error_msg = "" if models_loaded else "Could not load one or more models."
+# Initialize models lazily to reduce startup memory usage
+model_clf = None
+model_3d = None
+model_2d_unet = None
+model_nerf = None
+
+models_loaded = False
+model_error_msg = "AI models have not been loaded yet."
+
+def ensure_models_loaded():
+    global model_clf, model_3d, model_2d_unet, model_nerf
+    global models_loaded, model_error_msg
+
+    if models_loaded:
+        return True
+
+    print("[*] Loading AI models on demand...", flush=True)
+
+    try:
+        model_clf, model_3d, model_2d_unet, model_nerf = load_all_models(
+            path_2d="brain_tumor_2d_unet_best.pth",
+            path_3d="brain_tumor_3d_unet_best.pth",
+            path_nerf="nerf_brain_model.pth",
+            device=device
+        )
+
+        models_loaded = (
+            model_clf is not None
+            and model_3d is not None
+            and model_2d_unet is not None
+            and model_nerf is not None
+        )
+
+        if not models_loaded:
+            model_error_msg = "One or more AI models could not be loaded."
+
+        return models_loaded
+
+    except Exception as exc:
+        model_error_msg = str(exc)
+        print(f"[!] AI model loading failed: {exc}", flush=True)
+        return False
 print(f"[+] Medical AI Suite Loaded Status: {models_loaded}", flush=True)
 
 
